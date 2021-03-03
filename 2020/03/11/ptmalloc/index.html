@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zn">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="heap," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="12345678172.16.9.52   9W8K#J7v  22&#x2F;8888  5032&#x2F;6032172.16.9.53   9Cr3ReEc  22&#x2F;8888  5033&#x2F;6033student37ATE5GtBWssh ctf@172.16.9.52 -p 9W8K#J7vssh ctf@172.16.9.53 -p 9Cr3ReEchttps:&amp;#x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ptmalloc">
+<meta property="og:url" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/index.html">
+<meta property="og:site_name" content="notifyのblog">
+<meta property="og:description" content="12345678172.16.9.52   9W8K#J7v  22&#x2F;8888  5032&#x2F;6032172.16.9.53   9Cr3ReEc  22&#x2F;8888  5033&#x2F;6033student37ATE5GtBWssh ctf@172.16.9.52 -p 9W8K#J7vssh ctf@172.16.9.53 -p 9Cr3ReEchttps:&amp;#x">
+<meta property="og:locale">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201216143511628.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201216143528038.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201218114127335.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201218181759112.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201218181813210.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201218183231401.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201218183211613.png">
+<meta property="article:published_time" content="2020-03-11T04:36:21.000Z">
+<meta property="article:modified_time" content="2021-03-03T14:51:12.730Z">
+<meta property="article:author" content="notify">
+<meta property="article:tag" content="heap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://notify-bibi.github.io/2020/03/11/ptmalloc/image-20201216143511628.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notify-bibi.github.io/2020/03/11/ptmalloc/"/>
+
+
+
+
+
+  <title>ptmalloc | notifyのblog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zn">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">notifyのblog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notify-bibi.github.io/2020/03/11/ptmalloc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="notifyのblog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ptmalloc</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-03-11T12:36:21+08:00">
+                2020-03-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">172.16.9.52   9W8K#J7v  22&#x2F;8888  5032&#x2F;6032</span><br><span class="line">172.16.9.53   9Cr3ReEc  22&#x2F;8888  5033&#x2F;6033</span><br><span class="line">student37</span><br><span class="line">ATE5GtBW</span><br><span class="line"></span><br><span class="line">ssh ctf@172.16.9.52 -p 9W8K#J7v</span><br><span class="line">ssh ctf@172.16.9.53 -p 9Cr3ReEc</span><br><span class="line">https:&#x2F;&#x2F;172.20.1.1</span><br></pre></td></tr></table></figure>
+
+<h1 id="Heap"><a href="#Heap" class="headerlink" title="Heap"></a>Heap</h1><ul>
+<li> • dlmalloc – General purpose allocator</li>
+<li> • ptmalloc2 – glibc</li>
+<li> • jemalloc - FreeBSD and firefox</li>
+<li> • tcmalloc – Google</li>
+<li> • libumem - Solaris</li>
+</ul>
+<h1 id="ptmalloc"><a href="#ptmalloc" class="headerlink" title="ptmalloc"></a>ptmalloc</h1><p>Ubuntu16:</p>
+<ul>
+<li>libc6_2.23-0ubuntu11.2_amd64</li>
+<li>libc6_2.23-0ubuntu11.2_i386</li>
+</ul>
+<p>Ubuntu18:</p>
+<ul>
+<li>libc6_2.27-3ubuntu1.3_amd64</li>
+<li>libc6_2.27-3ubuntu1.3_i386</li>
+</ul>
+<h2 id="32"><a href="#32" class="headerlink" title="32"></a>32</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="64"><a href="#64" class="headerlink" title="64"></a>64</h2><p><em><strong>chunksize = 0x180 则malloc( ( 0x180 - 24, 0x180 - 8 ] )</strong></em> </p>
+<p>堆块块(Chunk), 其头部保存着自身的大小等信息, 在这之后即 是用户数据。一共有 3 种类型, 它们都使用同一种数 据结构(malloc_chunk)定义。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line"><span class="comment">/* Size of previous chunk (if free). */</span> </span><br><span class="line">  INTERNAL_SIZE_T prev_size;</span><br><span class="line"><span class="comment">/* Size in bytes, including overhead. */</span> </span><br><span class="line">  INTERNAL_SIZE_T size;</span><br><span class="line"><span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span></span><br><span class="line"><span class="comment">/* Only used for large blocks: pointer to next larger</span></span><br><span class="line"><span class="comment">size. */</span></span><br><span class="line"><span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd_nextsize</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk_nextsize</span>;</span> </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>具体来说, 用于管理的堆块主要分为 3 种类型。</p>
+<p> Allocated Chunk: 已分配块</p>
+<p><img src="/2020/03/11/ptmalloc/image-20201216143511628.png" alt="image-20201216143511628"></p>
+<p> Free Chunk: 被释放块</p>
+<p><img src="/2020/03/11/ptmalloc/image-20201216143528038.png" alt="image-20201216143528038"></p>
+<p> Top Chunk: 顶块</p>
+<p>位于所有块之后, 保存着 未分配的所有内存, 与已分配块使用相同的域。</p>
+<p>glibc 使用 size 域的最低 3 位来 存储一些其它信息。相关的掩码信息定义如下:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PREV_INUSE 0x1  <span class="comment">//如果此位为 0 则表示上一块为被释放的块, 这个时候此块的 PREV_SIZE 域保存的是上一块的地 址以便在 free 此块时能够找到上一块的地址并进行 合并操作。</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> IS_MMAPPED 0x2  <span class="comment">//第 2 位表示此块是否由 mmap 分配, 如果 此位为 0 则此块是由 top chunk 分裂得来, 否则是由 mmap 单独分配而来。</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NON_MAIN_ARENA 0x4 <span class="comment">//第 3 位表示此块是否不属于 main_arena, 在之后会提到main_arena是主线程用于保存堆状态的结构, 如果此位为 0 则表示此块是在 主线程中分配的。</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; arena   &lt;- main_arena</span><br><span class="line">&#123;</span><br><span class="line">  mutex = <span class="number">0</span>, </span><br><span class="line">  flags = <span class="number">1</span>, </span><br><span class="line">  fastbinsY = &#123;<span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>&#125;, </span><br><span class="line">  top = <span class="number">0x6020a0</span>, </span><br><span class="line">  last_remainder = <span class="number">0x0</span>, </span><br><span class="line">  bins = &#123;<span class="number">0x7ffff7dd1b78</span> &lt;main_arena+<span class="number">88</span>&gt; = arena.top, <span class="number">0x7ffff7dd1b78</span> &lt;main_arena+<span class="number">88</span>&gt;, <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt;, <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt;, <span class="number">0x7ffff7dd1b98</span> &lt;main_arena+<span class="number">120</span>&gt;, <span class="number">0x7ffff7dd1b98</span> &lt;main_arena+<span class="number">120</span>&gt;, <span class="number">0x7ffff7dd1ba8</span> &lt;main_arena+<span class="number">136</span>&gt;, <span class="number">0x7ffff7dd1ba8</span> &lt;main_arena+<span class="number">136</span>&gt;, <span class="number">0x7ffff7dd1bb8</span> &lt;main_arena+<span class="number">152</span>&gt;, <span class="number">0x7ffff7dd1bb8</span> &lt;main_arena+<span class="number">152</span>&gt;, <span class="number">0x7ffff7dd1bc8</span> &lt;main_arena+<span class="number">168</span>&gt;, <span class="number">0x7ffff7dd1bc8</span> &lt;main_arena+<span class="number">168</span>&gt;, <span class="number">0x7ffff7dd1bd8</span> &lt;main_arena+<span class="number">184</span>&gt;, <span class="number">0x7ffff7dd1bd8</span> &lt;main_arena+<span class="number">184</span>&gt;, <span class="number">0x7ffff7dd1be8</span> &lt;main_arena+<span class="number">200</span>&gt;, <span class="number">0x7ffff7dd1be8</span> &lt;main_arena+<span class="number">200</span>&gt;, <span class="number">0x7ffff7dd1bf8</span> &lt;main_arena+<span class="number">216</span>&gt;, &#125;, </span><br><span class="line">  binmap = &#123;<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>&#125;, </span><br><span class="line">  next = <span class="number">0x7ffff7dd1b20</span> &lt;main_arena&gt;, </span><br><span class="line">  next_free = <span class="number">0x0</span>, </span><br><span class="line">  attached_threads = <span class="number">1</span>, </span><br><span class="line">  system_mem = <span class="number">135168</span>, </span><br><span class="line">  max_system_mem = <span class="number">135168</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">fastbinsY = &#123;<span class="number">0x602020</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>&#125;,</span><br><span class="line">pwndbg&gt; bins</span><br><span class="line">fastbins</span><br><span class="line"><span class="number">0x20</span>: <span class="number">0x602020</span> —▸ <span class="number">0x602000</span> ◂— <span class="number">0x0</span></span><br><span class="line"><span class="number">0x30</span>: <span class="number">0x0</span></span><br><span class="line"><span class="number">0x40</span>: <span class="number">0x0</span></span><br><span class="line"><span class="number">0x50</span>: <span class="number">0x0</span></span><br><span class="line"><span class="number">0x60</span>: <span class="number">0x0</span></span><br><span class="line"><span class="number">0x70</span>: <span class="number">0x0</span></span><br><span class="line"><span class="number">0x80</span>: <span class="number">0x0</span></span><br><span class="line">unsortedbin</span><br><span class="line">all: <span class="number">0x0</span></span><br><span class="line">smallbins</span><br><span class="line">empty</span><br><span class="line">largebins</span><br><span class="line">empty</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Bins"><a href="#Bins" class="headerlink" title="Bins:"></a>Bins:</h2><h3 id="Fast-Bins"><a href="#Fast-Bins" class="headerlink" title="Fast Bins:"></a>Fast Bins:</h3><ul>
+<li><p>单向链表</p>
+</li>
+<li><p>每个元素是一 条单向链表的头部</p>
+</li>
+<li><p>且同一条链表中块的大小相同。 主要保存大小 32 至 128 字节的块 (0x20 - 0x80).  malloc(0-0x78)</p>
+</li>
+<li><p>特点是当 free 时 <strong>不取消下一块的 PREV_INUSE 位, 也不检查是否能 够进行合并操作</strong></p>
+</li>
+<li><p> Fast bins 的取用机 制是 LIFO (Last In First Out) , 即<strong>后释放的块将先被利用</strong>。（从fastbin头开始存和取）修改 fd</p>
+</li>
+<li><p>Free 1 2 3  M 3 2 1</p>
+</li>
+<li><p>链无数量限制</p>
+</li>
+</ul>
+<h3 id="Unsorted-Bins"><a href="#Unsorted-Bins" class="headerlink" title="Unsorted Bins"></a>Unsorted Bins</h3><p>从头开始插入, 从尾部解链分配</p>
+<p>之后的 Small Bins 与 Large Bins 也是同样的机制。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> bins = &#123;<span class="number">0x602120</span>, <span class="number">0x602000</span>, <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt;, <span class="number">0x7ffff7dd1b88</span> &lt;main_arena+<span class="number">104</span>&gt;,...&#125;</span><br><span class="line"></span><br><span class="line">pwndbg&gt; x/<span class="number">4</span>gx <span class="number">0x602120</span> first</span><br><span class="line"><span class="number">0x602120</span>:       <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000091</span></span><br><span class="line"><span class="number">0x602130</span>:       <span class="number">0x0000000000602000</span> next     <span class="number">0x00007ffff7dd1b78</span> prev</span><br><span class="line">pwndbg&gt;  x/<span class="number">4</span>gx <span class="number">0x602000</span>  last</span><br><span class="line"><span class="number">0x602000</span>:       <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000091</span></span><br><span class="line"><span class="number">0x602010</span>:       <span class="number">0x00007ffff7dd1b78</span> next     <span class="number">0x0000000000602120</span> prev</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Small-Bins"><a href="#Small-Bins" class="headerlink" title="Small Bins:"></a>Small Bins:</h3><ul>
+<li>每个元素是一 条<strong>双向循环链表</strong>的头部</li>
+<li>且同一条链表中块的<strong>大小相同</strong>。</li>
+<li>主要保存大小 <strong>32 至 1024</strong> 字节的块。</li>
+<li>由于是 双向链表, Small Bins 的取用机制是 FIFO (First In First Out) , 即先释放的块会先被利用, </li>
+<li>Free 1 2 3  M 1 2 3</li>
+</ul>
+<h3 id="Large-Bins"><a href="#Large-Bins" class="headerlink" title="Large Bins"></a>Large Bins</h3><ul>
+<li>每个元素是一条 双向循环链表的头部</li>
+<li>同一条链表中块的<strong>大小不一 定相同</strong></li>
+<li>按照<strong>从大到小</strong>的顺序排列</li>
+<li>每个 bin 保存一定 大小范围的块, 主要保存大小 <strong>1024 字节以上</strong>的块。</li>
+</ul>
+<h2 id="malloc流程"><a href="#malloc流程" class="headerlink" title="malloc流程"></a>malloc流程</h2><p>#假设malloc一个0x80的块）</p>
+<p>malloc hook指针</p>
+<p>在第一次执行malloc函数时, 系统会使用brk系 统调用向操作系统扩展程序的数据区, 此时 glibc 将 初始化top chunk与main_arena, 取得132KB的空间。 如果之后所有的 malloc 操作都可以满足, 即最后总 是能在此 132KB 中找到合适的内存块返回, 则不再 使用系统调用与内核交互。这段时间, 程序的堆内存 由 glibc 管理。glibc 首先将其加上 8 字节的额外开销，再对齐32字节。</p>
+<ul>
+<li><p> 检查 Fast bins 如果请求大小满足 Fast bins, 则在对应的 bin 中 寻找是否有相同大小的块, 如果有则直接将其取出 返回给程序, 同时更新 fast bins 中对应 bin 存储的链 表头指针</p>
+</li>
+<li><p> 检查 Small bins 如果块大小符合 Small bins, 则在对应大小的 Small bin 中寻找是否有合适的块, 如果有则直接返 回, 同时更新 Small bins 中对应 bin 的链表中该块的 上一块和下一块的指针。 </p>
+</li>
+<li><p> 处理 Unsorted bin 如果之前没能返回恰好符合的块, 则开始处理 Unsorted bin 中的块(这里有一个例外, 如果 Unsorted bin 中只有一个块且这个块是 last_remainder, 而且大 小足够, 则优先使用此块, 分裂后将前一块返回给 用户, 剩下的一块作为新的 last_remainder 再次放入 Unsorted bin.[7]) </p>
+</li>
+</ul>
+<ol>
+<li> a) 逐个迭代Unsorted bin中的块, 如果发现块的 大小正好是需要的大小, 则迭代过程中止, 直接返 回此块;否则将此块放入到对应的 Small bin 或者 large bin 中, 这也是整个 glibc 堆管理中唯一会将块 放入 Small bins 与 large bins 中的代码。 </li>
+<li> b) 迭代过程直到 Unsorted bin 中没有块或超过 最大迭代次数(10000)为止。 </li>
+<li> c) 随后开始在 Small bins 与 large bins 中寻找最 合适的块(指大于请求大小的最小块), 如果能够找到, 则分裂后将前一块返回给用户, 剩下的块放入 Unsorted bin 中。 </li>
+<li> d) 如果没能找到, 则回到开头, 继续迭代过程, 直到 Unsorted bin 空为止 2.2.4  使用顶块 如果之前的操作都没能找到合适的块, 将分裂 Top chunk 返回给用户, 若 Top chunk 的大小仍然不 足, 则再次执行 malloc_consolidate 函数清除 Fast bins, 若Fast bins已空, 只能使用sysmalloc函数借助 系统调用拓展空间。 </li>
+</ol>
+<h2 id="free流程"><a href="#free流程" class="headerlink" title="free流程"></a>free流程</h2><ol>
+<li>Free 函数是 glibc 的释放接口, 将之前分配得到 的用户内存指针作为参数, glibc 会释放这一块空间。 主要的功能由_int_free 函数实现。 </li>
+<li>首先, 进行一系列的检查, 包括内存地址对齐, PREV_INUSE 位是否正确等等, 能够发现一些破坏 与 double free 的问题。 </li>
+<li>如果块大小满足 Fast bins, 则不取消下一块的 PREV_INUSE 位, 也不设置下一块的 prev_size 域, 直接将该块放入对应的 Fast bin 中, 且不进行相邻块 的合并操作。 </li>
+<li>检查被 free 内存块的前一块(这里的前一块指连 续内存中的上一块, 通过 prev_size 域来寻找), 如果 未使用, 则合并这 2 块, 将前一块从其 bin 中移除之 后再检查其后一块, 如果发现是 Top chunk, 则最后将 合并到 Top chunk 中, 不放入任何 bin; 如果不是 Top chunk 且未使用, 则再合并这 2 块, 将后一块从其 bin 中移除, 并且将合并过的大块放入 Unsorted bin 中。 </li>
+</ol>
+<h2 id="heap伪代码"><a href="#heap伪代码" class="headerlink" title="heap伪代码"></a>heap伪代码</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">find_from_fastbin</span><span class="params">(<span class="keyword">int</span> idx)</span></span>&#123;</span><br><span class="line">    bin = &amp;arena-&gt;fastbin[idx] - <span class="number">0x10</span>;</span><br><span class="line">    chunk* res = bin-&gt;fd;</span><br><span class="line">		bin-&gt;fd = res-&gt;fd;</span><br><span class="line">    <span class="comment">// 高版本有fastbin检查</span></span><br><span class="line">    vassert(res-&gt;size == idx*<span class="number">16</span>+<span class="number">0x20</span>); </span><br><span class="line">    <span class="comment">// 但这段代码没 有检查内存地址的对齐</span></span><br><span class="line">		<span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// LIFO</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mv_to_fastbin</span><span class="params">(<span class="keyword">void</span>* chunk, <span class="keyword">int</span> idx)</span></span>&#123;</span><br><span class="line">   <span class="keyword">void</span>* fd = arena-&gt;fastbin[idx]-&gt;fd;</span><br><span class="line">   arena-&gt;fastbin[idx]-&gt;fd = chunk;</span><br><span class="line">   chunk-&gt;fd = fd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理 Small Bins 的 代码如下所示:</span></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">find_from_smallbin</span><span class="params">(<span class="keyword">int</span> idx)</span></span>&#123;</span><br><span class="line">   <span class="comment">// 大小相等</span></span><br><span class="line">    small_bin = &amp;arena-&gt;bins[idx] - <span class="number">16</span>;</span><br><span class="line">    chunk* victim = small_bin-&gt;bk;</span><br><span class="line">    <span class="keyword">if</span> (victim == <span class="number">0</span>)&#123;<span class="comment">/* initialization check */</span></span><br><span class="line">				malloc_consolidate(av);</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    bck = victim-&gt;bk;</span><br><span class="line">    set_inuse_bit_at_offset(victim, nb);</span><br><span class="line">		bin-&gt;bk = bck;</span><br><span class="line">  	bck-&gt;fd =  small_bin;</span><br><span class="line">		<span class="keyword">return</span> victim;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">find_from_small_large</span><span class="params">(<span class="keyword">size_t</span> size, <span class="keyword">int</span> idx)</span></span>&#123;</span><br><span class="line">   <span class="comment">// 满足最小大小</span></span><br><span class="line">  	<span class="keyword">if</span> (chunk = find_it())&#123;</span><br><span class="line">       vassert(chunk-&gt;size &gt; size);</span><br><span class="line">       relloc(chunk, size);</span><br><span class="line">       <span class="keyword">return</span> chunk</span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="keyword">return</span> null;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FIFO double link insert</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mv_to_bins</span><span class="params">(<span class="keyword">void</span>* chunk)</span></span>&#123;</span><br><span class="line">  <span class="comment">//这也是整个 glibc 堆管理中唯一会将块 放入 Small bins 与 large bins 中的代码。</span></span><br><span class="line">    fd = bins[chunk-&gt;size/<span class="number">0x10</span>]-&gt;fd;</span><br><span class="line">    bk = bins[chunk-&gt;size/<span class="number">0x10</span>]-&gt;bk;</span><br><span class="line">    bins[chunk-&gt;size/<span class="number">0x10</span>]-&gt;fd = chunk;</span><br><span class="line">    chunk-&gt;fd = fd;</span><br><span class="line">    chunk-&gt;bk = bk;</span><br><span class="line">    fd-&gt;bk = chunk;</span><br><span class="line">    bk-&gt;fd = chunk;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// double link delete</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unlink</span><span class="params">(<span class="keyword">void</span>* chunk)</span></span>&#123;</span><br><span class="line">   vassert(fd-&gt;bk == chunk &amp;&amp; bk-&gt;fd == chunk, <span class="string">&quot;unlink error&quot;</span>);<span class="comment">//早期无此检查</span></span><br><span class="line">   bk, fd = chunk-&gt;bk, chunk-&gt;fd;</span><br><span class="line">   bk-&gt;fd = fd;</span><br><span class="line">   fd-&gt;bk = bk;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unlink_auto</span><span class="params">(<span class="keyword">void</span>* chunk)</span></span>&#123;</span><br><span class="line">  <span class="keyword">if</span>(is_fastbin(chunk))&#123;</span><br><span class="line">     <span class="comment">/*遍历fastbin一条链将其删除*/</span></span><br><span class="line">    。。。。。</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">     unlink(chunk)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span>* __libc_malloc(<span class="keyword">size_t</span> need_size)&#123;</span><br><span class="line">    chunksize = ((need_size<span class="number">-1</span>)&amp;~<span class="number">0b1111</span>) + <span class="number">0x20</span>;</span><br><span class="line">  	<span class="keyword">int</span> idx = chunksize/<span class="number">0x10</span> - <span class="number">2</span>;  </span><br><span class="line">  	</span><br><span class="line">  	<span class="keyword">if</span>(fastbin[idx<span class="comment">/*0-6*/</span>]有空闲块 &amp;&amp; chunksize&gt;=<span class="number">0x20</span> &amp;&amp; chunksize&lt;=<span class="number">0x80</span>)  <span class="comment">//chunksize  0x20-0x80</span></span><br><span class="line">    	  <span class="keyword">return</span> find_from_fastbin(idx)</span><br><span class="line">		</span><br><span class="line">      </span><br><span class="line">		<span class="keyword">if</span>(bins[idx + <span class="number">2</span> <span class="comment">/*2-2+61*/</span>]有空闲块 &amp;&amp; chunksize&gt;=<span class="number">0x20</span> &amp;&amp; chunksize&lt;=<span class="number">0x3f0</span>)   <span class="comment">//chunksize 0x20 - 0x3f0</span></span><br><span class="line">    	  <span class="keyword">return</span> find_from_smallbin(idx + <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 剩下的一块作为新的 last_remainder 再次放入 Unsorted bin</span></span><br><span class="line">    <span class="keyword">if</span>(bins[<span class="number">1</span>]-&gt;fd != &amp;bins[<span class="number">1</span>]<span class="number">-0x10</span> &amp;&amp;</span><br><span class="line">       bins[<span class="number">1</span>]-&gt;fd-&gt; == &amp;bins[<span class="number">1</span>]<span class="number">-0x10</span> &amp;&amp;     <span class="comment">// 如果 Unsorted bin 中只有一个块且这个块是 last_remainder,</span></span><br><span class="line">       &amp;&amp; last_remainder.size &gt;= chunksize)  <span class="comment">// 而且大小足够, 则优先使用此块, 分裂后将前一块返回给用户, </span></span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">if</span>(last_remainder.size == chunksize) &#123; <span class="comment">// 大小足够且相等</span></span><br><span class="line">            last_remainder = <span class="literal">nullptr</span>;</span><br><span class="line">            unlink_auto(last_remainder);</span><br><span class="line">            <span class="keyword">return</span> last_remainder;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span>&#123; <span class="comment">// last_remainder需要分裂</span></span><br><span class="line">            <span class="keyword">if</span>(last_remainder-&gt;size - chunksize &gt;= <span class="number">32</span>)&#123; <span class="comment">//满足最小分裂要求</span></span><br><span class="line">               <span class="comment">// 分裂last_remainder</span></span><br><span class="line">               unlink_auto(last_remainder);</span><br><span class="line">               <span class="keyword">void</span> new_last_remainder = chunk + chunksize;</span><br><span class="line">               new_last_remainder-&gt;size = last_remainder-&gt;size - chunksize;</span><br><span class="line">               <span class="comment">// 返回last_remainder</span></span><br><span class="line">               <span class="keyword">void</span>* res = last_remainder;</span><br><span class="line">               last_remainder = new_last_remainder; <span class="comment">// 保存分裂的块</span></span><br><span class="line">               <span class="comment">//再次放入Unsorted bin</span></span><br><span class="line">               bins[<span class="number">1</span>]-&gt;fd = new_last_remainder;</span><br><span class="line">               <span class="keyword">return</span> res;</span><br><span class="line">            &#125;</span><br><span class="line">						<span class="comment">// 不满足</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 从unsorted bins</span></span><br><span class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(curr = bins[<span class="number">1</span>], curr != &amp;bins[<span class="number">1</span>] - <span class="number">0x10</span> &amp;&amp; count&lt;=<span class="number">10000</span>; curr = curr-&gt;fd, count++)&#123;</span><br><span class="line">      	<span class="keyword">if</span>(curr-&gt;size == chunksize)&#123;</span><br><span class="line">            <span class="comment">//没有采用unlink，注意的是这里无unkink检查，这就很好</span></span><br><span class="line">            bck = curr-&gt;bk; </span><br><span class="line">            ...</span><br><span class="line">            unsorted_chunks (av)-&gt;bk = bck; </span><br><span class="line">            bck-&gt;fd = unsorted_chunks (av);	</span><br><span class="line">          	<span class="keyword">return</span> curr;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;<span class="comment">//没找到</span></span><br><span class="line">           <span class="comment">// 将此块放入到对应的 Small bin 或者 large bin 中, </span></span><br><span class="line">           <span class="comment">// 这也是整个 glibc 堆管理中唯一会将块 放入 Small bins 与 large bins 中的代码。</span></span><br><span class="line">          	unlink(curr);</span><br><span class="line">           <span class="comment">// 放入Small bins or large bins</span></span><br><span class="line">            mv_to_bins(curr);</span><br><span class="line">           <span class="comment">// 从Small bins 与 large bins查找</span></span><br><span class="line">          	<span class="keyword">void</span>* ret = find_from_small_large(chunksize, idx);</span><br><span class="line">          	<span class="keyword">if</span>(ret) <span class="keyword">return</span> ret;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 从 topchunk分裂一个</span></span><br><span class="line">  	<span class="keyword">if</span>(chunksize&lt;=topchunk-&gt;size) </span><br><span class="line">        <span class="keyword">return</span> topchunk;</span><br><span class="line">  	<span class="keyword">else</span>&#123; <span class="comment">// topchunk大小不够</span></span><br><span class="line">        <span class="comment">// 清除 Fast bins, 若 Fast bins 已空, 只能使用 sysmalloc 函数借助 系统调用拓展空间。</span></span><br><span class="line">      	<span class="keyword">void</span>* ret = malloc_consolidate(fastbins);</span><br><span class="line">        <span class="keyword">if</span> (ret)&#123;</span><br><span class="line">            <span class="keyword">return</span> ret</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;<span class="comment">// 若 Fast bins 已空 , 或者释放了还是不够</span></span><br><span class="line">            <span class="keyword">return</span> sys_brk()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// -------------------------------- free ---------------------------------</span></span><br><span class="line"><span class="keyword">void</span>* global_prev_free_fastbin = <span class="literal">nullptr</span>;</span><br><span class="line"><span class="keyword">void</span> __libc_free(<span class="keyword">void</span>* ptr)&#123;</span><br><span class="line">  <span class="keyword">void</span>* chunk = ptr - <span class="number">0x10</span>;</span><br><span class="line">  <span class="keyword">void</span>* fd_chunk = chunk + chunk-&gt;size;</span><br><span class="line">  vassert(chunk&amp;<span class="number">0b1111</span>==<span class="number">0</span>, <span class="string">&quot;&quot;</span>);<span class="comment">//对齐检查</span></span><br><span class="line">  vassert(fd_chunk-&gt;prev_inuse == <span class="literal">true</span>, <span class="string">&quot;&quot;</span>);<span class="comment">// 下一块的 prev_inuse 检查</span></span><br><span class="line">  vassert(bins[<span class="number">1</span>]-&gt;fd-&gt;bk == &amp;bins[<span class="number">1</span>]<span class="number">-0x10</span>, <span class="string">&quot;unsorted bin 指向自身检查&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(chunk-&gt;size &gt; <span class="number">0x20</span> &amp;&amp; chunk-&gt;size&lt;=<span class="number">0x80</span>)&#123; <span class="comment">// fastbins</span></span><br><span class="line">     <span class="comment">//这种释放相当于直接把该chunk引用放到了fastbins,啥也不做，只是做下检查和链表链接</span></span><br><span class="line">     vassert(global_prev_free_fastbin!=chunk, <span class="string">&quot;double free&quot;</span>);</span><br><span class="line">     global_prev_free_fastbin = chunk;</span><br><span class="line">     mv_to_fastbin(chunk, chunk-&gt;size/<span class="number">0x10</span> - <span class="number">2</span>); <span class="comment">// 直接放入fastbin</span></span><br><span class="line">     <span class="keyword">return</span>;</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">     fd_chunk-&gt;prev_size = chunk-&gt;size; <span class="comment">// // 设置下一块 prev_size = size;</span></span><br><span class="line">     fd_chunk-&gt;prev_inuse = <span class="literal">false</span>; <span class="comment">// 设置下一块 prev_inuse 为false;</span></span><br><span class="line">     <span class="keyword">if</span> (chunk-&gt;prev_inuse == <span class="literal">false</span>)&#123; <span class="comment">// 前一块是释放了的</span></span><br><span class="line">         <span class="keyword">void</span>* bk_chunk = chunk - chunk-&gt;prev_size;</span><br><span class="line">         vassert(bk_chunk-&gt;size == chunk-&gt;prev_size, <span class="string">&quot;&quot;</span>);</span><br><span class="line">         <span class="comment">// 合并相邻的前一块</span></span><br><span class="line">         <span class="comment">// 将上一块从其所在bins移除掉</span></span><br><span class="line">         unlink(bk_chunk);</span><br><span class="line">         <span class="comment">// 上一块的 bk_chunk-&gt;size += chunk-&gt;size</span></span><br><span class="line">         <span class="comment">// 更新下一chunk 的 prev_size = bk_chunk-&gt;size</span></span><br><span class="line">         merge(bk_chunk, chunk, fd_chunk);</span><br><span class="line">     &#125;</span><br><span class="line">    </span><br><span class="line">     <span class="keyword">void</span>* fd_fd_chunk = fd_chunk + fd_chunk-&gt;size;</span><br><span class="line">     <span class="keyword">if</span>( fd_fd_chunk-&gt;prev_inuse == <span class="literal">false</span>)&#123; <span class="comment">// chunk的下一块为释放的块</span></span><br><span class="line">        <span class="keyword">if</span>(fd_chunk == top_chunk)<span class="comment">//发现是 Top chunk</span></span><br><span class="line">             merge(fd_chunk, top_chunk)</span><br><span class="line">         <span class="keyword">else</span>&#123;</span><br><span class="line">           <span class="comment">// 合并相邻的下一块</span></span><br><span class="line">           <span class="comment">// 将下一块从其所在bins移除掉</span></span><br><span class="line">         	 unlink(fd_chunk);</span><br><span class="line">           <span class="comment">// 当前chunk-&gt;size += fd_chunk-&gt;size</span></span><br><span class="line">           <span class="comment">// 更新下下一chunk 的 prev_size = bk_chunk-&gt;size</span></span><br><span class="line">           merge(chunk, fd_chunk, fd_fd_chunk);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// -------------------------------- relloc ---------------------------------</span></span><br><span class="line"><span class="keyword">void</span>* __libc_relloc(<span class="keyword">void</span>* ptr, <span class="keyword">size_t</span> new_size)&#123;</span><br><span class="line">    <span class="keyword">void</span>* chunk = ptr - <span class="number">0x10</span>;</span><br><span class="line">    chunksize = ((need_size<span class="number">-1</span>)&amp;~<span class="number">0b1111</span>) + <span class="number">0x20</span>;</span><br><span class="line">    <span class="keyword">void</span> *fd_chunk = chunk + chunk-&gt;size;</span><br><span class="line">    <span class="keyword">if</span>(chunksize &lt; chunk-&gt;size)&#123; <span class="comment">// 缩容</span></span><br><span class="line">        <span class="keyword">if</span>(chunk-&gt;size - chunksize &gt;=<span class="number">32</span> )&#123;<span class="comment">// 分裂出的部分如果达到 块的最小大小(32 字节)</span></span><br><span class="line">            chunk-&gt;size = chunksize;</span><br><span class="line">            _int_free(chunk + chunk-&gt;size + <span class="number">0x10</span>);</span><br><span class="line">            <span class="keyword">return</span> chunk;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">goto</span> new_copy;</span><br><span class="line">        &#125;</span><br><span class="line">      	</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123; <span class="comment">// 扩容</span></span><br><span class="line">        <span class="keyword">if</span>(fd_chunk == top_chunk)&#123; <span class="comment">// 已分配的块后一块是 Top chunk</span></span><br><span class="line">            top_chunk_size = top_chunk-&gt;size - (chunksize - chunk-&gt;size);</span><br><span class="line">            top_chunk = chunk + new_size;</span><br><span class="line">            top_chunk-&gt;size = top_chunk_size;</span><br><span class="line">            top_chunk-&gt;prev_inuse = <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">return</span> chunk;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">void</span>* fd_fd_chunk = fd_chunk + fd_chunk-&gt;size;</span><br><span class="line">            <span class="keyword">if</span>(fd_fd_chunk-&gt;prev_inuse == <span class="literal">false</span> &amp;&amp;                <span class="comment">// chunk的下一块为释放的块</span></span><br><span class="line">              (fd_chunk-&gt;size + chunk-&gt;size) - chunksize &gt;=<span class="number">32</span> )&#123;  <span class="comment">// 且大小满足</span></span><br><span class="line">                unlink(fd_chunk);</span><br><span class="line">                _int_free(fd_chunk);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span>(fd_fd_chunk-&gt;prev_inuse == <span class="literal">false</span> &amp;&amp;           <span class="comment">// chunk的下一块为释放的块</span></span><br><span class="line">                   (fd_chunk-&gt;size + chunk-&gt;size) == chunksize)&#123;  <span class="comment">// 且大小相等</span></span><br><span class="line">              	unlink(fd_chunk);</span><br><span class="line">            &#125;<span class="comment">//否则</span></span><br><span class="line">            <span class="keyword">goto</span> new_copy;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//impossible</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">new_copy:</span><br><span class="line">    <span class="keyword">void</span>* res = <span class="built_in">malloc</span>(new_size);</span><br><span class="line">    <span class="built_in">memcpy</span>(res, ptr, chunk-&gt;size - <span class="number">0x10</span>);</span><br><span class="line">    <span class="built_in">free</span>(ptr);</span><br><span class="line">  	<span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="unlink-Attack"><a href="#unlink-Attack" class="headerlink" title="unlink Attack"></a>unlink Attack</h2><img src="/2020/03/11/ptmalloc/image-20201218114127335.png" alt="image-20201218114127335" style="zoom:50%;">
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#x2F;&#x2F; ----------------------- unlink ---------------------------</span><br><span class="line"></span><br><span class="line">    &#x2F;*</span><br><span class="line">		fakefd-&gt;bk &#x3D;&#x3D; fake_chunk</span><br><span class="line">		fakebk-&gt;fd &#x3D;&#x3D; fake_chunk</span><br><span class="line">		&#123;</span><br><span class="line">			*ptr &#x3D;&#x3D; chunk</span><br><span class="line">			fakefd &#x3D; ptr - 0x18</span><br><span class="line">			fakebk &#x3D; ptr - 0x10</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		fakefd-&gt;bk &#x3D; fakebk</span><br><span class="line">		fakebk-&gt;fd &#x3D; fakefd;</span><br><span class="line">		&#123;</span><br><span class="line">			导致 *(ptr - 0x18 + 0x18) &#x3D; ptr - 0x10</span><br><span class="line">			导致 *(ptr - 0x10 + 0x10) &#x3D; ptr - 0x18</span><br><span class="line">			也就是 *ptr &#x3D; ptr - 0x18</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		*&#x2F;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Fastbin-attack"><a href="#Fastbin-attack" class="headerlink" title="Fastbin_attack"></a>Fastbin_attack</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="The-House-of-Prime-glibc-2-3-5-2-19"><a href="#The-House-of-Prime-glibc-2-3-5-2-19" class="headerlink" title="The House of Prime glibc [2.3.5 - 2.19)"></a>The House of Prime glibc [2.3.5 - 2.19)</h2><p>此方法是利用 glibc 在判断 Fast Bins 的下标时的 一个疏忽来破坏main_arena中的数据, 在早期的glibc 2.3.5 版本中, main_arena 结构与现在有所不同:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_state</span> &#123;</span></span><br><span class="line">  <span class="comment">/* Serialize access. */</span></span><br><span class="line">  <span class="keyword">mutex_t</span> mutex;</span><br><span class="line">  <span class="comment">// Should we have padding to move the mutex to its own cache line?</span></span><br><span class="line">  <span class="meta">#<span class="meta-keyword">if</span> THREAD_STATS</span></span><br><span class="line">  <span class="comment">/* Statistics for locking. Only used if THREAD_STATS is defined. */</span></span><br><span class="line">  <span class="keyword">long</span> stat_lock_direct, stat_lock_loop, stat_lock_wait; </span><br><span class="line">  <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">  <span class="comment">/* The maximum chunk size to be eligible for fastbin */</span></span><br><span class="line">  INTERNAL_SIZE_T max_fast; <span class="comment">/* low 2 bits used as flags */</span></span><br><span class="line">  <span class="comment">/* Fastbins */</span></span><br><span class="line">  mfastbinptr fastbins[NFASTBINS]; ...</span><br></pre></td></tr></table></figure>
+
+<p>而 glibc 在根据块大小取得 Fast bins 数组下标时 使用的宏如下面所示:</p>
+<p><strong>#define fastbin_index(sz) ((((unsigned int)(sz)) &gt;&gt; 3) - 2)</strong></p>
+<p>若此时的 sz 为 8, 则最后得到的下标为 (8 &gt;&gt; 3) – 2 = –1, 这就意味着若溢出时将下一块的 sz 修改为 8,则会造成 fastbins 数组的上一个域即 max_fast 变量遭到破坏。</p>
+<p>但在glibc 2.19版本中, main_arena的结构已经 发生了变化, 虽然 <em>fastbin_index</em> 宏仍然存在漏洞, 但 在 fastbins 数组的前面不再是 max_fast 变量, 此变量 被移出结构体作为全局变量 global_max_fast 使用, 这样一来, 通过破坏前一个域来进行利用的方法已 不可行。</p>
+<h2 id="The-House-of-Mind-当前流行的-glibc-中已不再可行"><a href="#The-House-of-Mind-当前流行的-glibc-中已不再可行" class="headerlink" title="The House of Mind.  [当前流行的 glibc 中已不再可行]"></a>The House of Mind.  [当前流行的 glibc 中已不再可行]</h2><p>此方法在当前流行的 glibc 中已不再可行, glibc 在 free 时都需要对 Unsorted bin 进行检查, 确认其中 的第一个块的后向指针是否指向自身, 如此一来若 攻击者将 Unsorted bin 指向希望控制的内存区域, 则 会导致检查失败而无法利用。</p>
+<h2 id="The-House-of-Force-【需要进行heap泄露】"><a href="#The-House-of-Force-【需要进行heap泄露】" class="headerlink" title="The House of Force 【需要进行heap泄露】"></a>The House of Force 【需要进行heap泄露】</h2><p>此方法通过<strong>溢出Top chunk的size域来欺骗glibc</strong>, 使得攻击者 malloc 一个很大的数目(负有符号整数) 时能够使用 Top chunk 来进行分配, 此时 Top chunk 的位置会加上这个大数, 造成整数溢出, 结果是 Top chunk 能够被转移到堆之前的内存地址(如程序的.bss 段, .data 段, GOT 表等), 下次再执行 malloc 时, 就会 返回转移之后的地址, 攻击者即能够控制其他的内 存数据。</p>
+<p><strong>32为例子</strong></p>
+<ul>
+<li><p>攻击者溢出 Top chunk 的上一块, 将 Topchunk 的大小修改为 0xffffffff。</p>
+</li>
+<li><p>攻击者需要能够控制下一次 malloc 时传入的</p>
+</li>
+<li><p>大小, 此时传入 0xffffffec, 经过处理得到的大小是 0xfffffff0, glibc 的大小使用的是 size_t 类型存储, 这 是一种与机器字长相等的无符号整形。故此时 glibc 认为 0xffffffff &gt; 0xfffffff0, 即 Top chunk 的空间足够, 于是使用 Top chunk 进行分配。假设 Top chunk 之前 的位置是 0x804a010 分配后, Top chunk 的地址将处 于 0x804a010 + 0xfffffff0 = 0x804a000。</p>
+</li>
+</ul>
+<p>下次 malloc 时, 攻击者就能够取得 0x804a000 这块内存, 进一步修改就能够干扰程序的运行。</p>
+<p>此方法的缺点在于, 会受到之后提到的 ASLR 技术的影响, 如果攻击者需要修改指定位置的内存, 他需要知道当前 Top chunk 的位置以构造合适的 malloc 大小来取得对应的内存。而 ASLR 开启时, glibc 的堆内存地址将会是随机的, 如果想要利用此 项技术, 则需要进行信息泄露。</p>
+<h2 id="The-House-of-Lore-【可行】"><a href="#The-House-of-Lore-【可行】" class="headerlink" title="The House of Lore 【可行】"></a>The House of Lore 【可行】</h2><p>glibc 2.19也可使用，需绕过</p>
+<p>此方法希望通过<strong>破坏</strong>已经放入 <strong>Small bins 中块 的 bk 指针</strong>来达到取得任意地址的目的</p>
+<p>在早期的 glibc 2.3.5 版本的_int_malloc 中, 处理 Small Bins 的 代码如下所示:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//参考上面的 find_from_smallbin</span></span><br><span class="line">bin = small_bin[idx] - <span class="number">0x10</span></span><br><span class="line">  </span><br><span class="line"><span class="comment">// 能够 chunk-&gt;bk = fake_chunk</span></span><br><span class="line"><span class="built_in">malloc</span>(nb)&#123;</span><br><span class="line">    <span class="comment">// fake_bck = fake_chunk-&gt;bk</span></span><br><span class="line">    <span class="comment">// 导致 bck-&gt;fd = bin;</span></span><br><span class="line">    <span class="comment">// 导致 bin-&gt;bk = fake_bck</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">malloc</span>(nb)&#123;</span><br><span class="line">    </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>即如果请求的大小符合 Small Bins, 则在对应的 bin 中寻找是否有空闲的块, 如果有就直接从 bin 的 链表中解链并返回给用户。</p>
+<p>基于上面的机制, 当一个块存在于 Small Bin 的 第一个块(这里的第一块指的是在取 Small Bin 块时 选择的第一块, 即 Small Bin 的 bk 指针指向的那一块) 时, 通过溢出修改其 bk 指针指向某个地址 ptr, 当下 一次 malloc 对应大小的块时, 就有 bck = victim-&gt;bk= ptr, 且 bin-&gt;bk = bck = ptr, 这样以来就成功地将这 个 bin 的第一块指向了 ptr, 下次再 malloc 对应大小 就能够返回 ptr+16 的位置了, 这样攻击者再对取回 的块进行写入就能控制 ptr+16 的内存内容。</p>
+<p>尽管在 glibc 2.19 版本的代码中, 已经加入了对 应的防御机制, <strong>通过检查 bin 中第二块的 bk (我感觉是fd) 指针是 否指向第一块</strong>, 可以发现对 Small bins 的破坏。但攻 击者如果同时伪造了 bin 中的前 2 块(<strong>smallbin-&gt;bk</strong>-&gt;bk-&gt;fd == smallbin-&gt;bk), 就可以绕过这 个检查。故此种利用方式仍然可以进行。</p>
+<h2 id="The-House-of-Spirit-fastbins-attack"><a href="#The-House-of-Spirit-fastbins-attack" class="headerlink" title="The House of Spirit [fastbins attack]"></a>The House of Spirit [fastbins attack]</h2><p>此方法通过堆的Fast bin机制来辅助栈溢出的利 用, 一般的栈溢出漏洞的利用都希望能够覆盖函数 的返回地址以控制 EIP 来劫持控制流, 但若栈溢出 的长度无法覆盖返回地址, 但是能够覆盖到栈上的 一个即将被 free 的堆指针, 此时可以将这个指针改 写为栈上的地址并在相应位置构造一个 Fast bin 块的 元数据。接着在 free 操作时, 这个栈上的“堆块”即 被投入 Fast Bin 中, 下一次 malloc 对应的大小时, 由 于 Fast Bin 的机制为先进后出, 故上次 free 的栈上的 “堆块”能够被优先返回给用户, 再次写入时就可能 造成返回地址的改写, 亦可进行信息泄漏。</p>
+<p>此方法的缺点与<em>The House of Force</em>方法类似, 需要对栈地址进行泄漏, 否则无法正确覆盖需要释 放的堆指针, 且在构造数据时, 需要满足对齐的要 求, 存在很多的限制。</p>
+<h2 id="现代保护手段NX-ALSR-PIE-RELRO"><a href="#现代保护手段NX-ALSR-PIE-RELRO" class="headerlink" title="现代保护手段NX ALSR PIE RELRO"></a>现代保护手段NX ALSR PIE RELRO</h2><ul>
+<li>不可执行位 NX Bit </li>
+<li>地址空间布局随机化 ASLR</li>
+<li>位置无关可执行文件 PIE </li>
+<li>重定位只读 RELRO <ol>
+<li>部分 RELRO: 在程序装入后, 将其中一些段 (如.dynamic)标记为只读, 防止程序的一些重定位信 息被修改。 </li>
+<li>完全 RELRO: 在部分 RELRO 的基础上, 在 程序装入时, 直接解析完所有符号并填入对应的值, 此时所有的 GOT 表项都已初始化, 且不装入 link_map 与_dl_runtime_resolve 的地址(二者都是程 序动态装载的重要结构和函数)。 </li>
+</ol>
+</li>
+</ul>
+<h2 id="堆的攻击手段"><a href="#堆的攻击手段" class="headerlink" title="堆的攻击手段"></a>堆的攻击手段</h2><ol>
+<li> 现代利用手段 </li>
+</ol>
+<ul>
+<li>现代解链操作  UNLINK 攻击当前的glibc对unlink宏进行了 加固, 传统的 unlink 利用方法已不再可行。为了绕过 当前的 glibc 对 unlink 做的检查, 需要在内存中找到 指向构造的伪块的指针 </li>
+<li>攻击 Fast bins </li>
+<li>释放后使用漏洞的利用 </li>
+<li>两次释放漏洞的利用 double-free</li>
+<li>改写 Realloc Hook </li>
+<li>利用单字节溢出漏洞 </li>
+<li>扩展被释放块 </li>
+<li>扩展已分配块 </li>
+<li>收缩被释放块 </li>
+<li>攻击 Unsorted Bin </li>
+<li>重分配函数的利用 </li>
+</ul>
+<h2 id="double-free"><a href="#double-free" class="headerlink" title="double free"></a>double free</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">free</span>(a)</span><br><span class="line"><span class="comment">// fast -&gt; a -&gt; null</span></span><br><span class="line"><span class="built_in">free</span>(b)</span><br><span class="line"><span class="comment">// fast -&gt; b -&gt; a -&gt; null</span></span><br><span class="line"><span class="built_in">free</span>(a)</span><br><span class="line"><span class="comment">// fast -&gt; a -&gt; b -&gt; a -&gt; b</span></span><br><span class="line">d = <span class="built_in">malloc</span>() <span class="comment">// = a</span></span><br><span class="line"><span class="comment">// fast -&gt; b -&gt; a -&gt; b</span></span><br><span class="line">e = <span class="built_in">malloc</span>() <span class="comment">// = b</span></span><br><span class="line"><span class="comment">// fast -&gt; a -&gt; b</span></span><br><span class="line">change(e) &#123;<span class="comment">//就等于change b</span></span><br><span class="line">		e-&gt;fd = free_got;</span><br><span class="line">    f = <span class="built_in">malloc</span>() <span class="comment">// = a</span></span><br><span class="line">    <span class="comment">// fast -&gt; b -&gt; free_got</span></span><br><span class="line">    <span class="built_in">malloc</span>()</span><br><span class="line">    change(<span class="built_in">malloc</span>())</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="realloc-hook-fastbin-attack"><a href="#realloc-hook-fastbin-attack" class="headerlink" title="__realloc_hook [fastbin attack]"></a>__realloc_hook [fastbin attack]</h2><p>__realloc_hook 在程序启动时有一个非 0 的初 始化值, 在 64 位系统中, 这个地址将以 7f 开头</p>
+<p>攻击者能够通过刻意的内存地址错位来进行 Fast Bin Attack, 从而达到改写__realloc_hook 的目的。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x7ffff7dd3798</span> &lt;_IO_stdfile_0_lock+<span class="number">8</span>&gt;:  <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd37a8</span> &lt;__free_hook&gt;:   <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="number">0x7ffff7dd1ae8</span> &lt;_IO_wide_data_0+<span class="number">296</span>&gt;:   <span class="number">0x0000000000000000</span>      <span class="number">0x00007ffff7dd0260</span></span><br><span class="line"><span class="number">0x7ffff7dd1af8</span>: <span class="number">0x0000000000000000</span>      <span class="number">0x00007ffff7a92ea0</span></span><br><span class="line"><span class="number">0x7ffff7dd1b08</span> &lt;__realloc_hook&gt;:        <span class="number">0x00007ffff7a92a70</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd1b18</span>: <span class="number">0x0000000000000000</span>      <span class="number">0x0000000100000000</span></span><br><span class="line"><span class="number">0x7ffff7dd1b28</span> &lt;main_arena+<span class="number">8</span>&gt;:  <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd1b38</span> &lt;main_arena+<span class="number">24</span>&gt;: <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd1b48</span> &lt;main_arena+<span class="number">40</span>&gt;: <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7ffff7dd1b58</span> &lt;main_arena+<span class="number">56</span>&gt;: <span class="number">0x0000000000000000</span>      <span class="number">0x0000000000000000</span></span><br><span class="line">  </span><br><span class="line">__realloc_hook = main_arena - <span class="number">0x20</span></span><br><span class="line">__free_hook = main_arena - <span class="number">0x1c88</span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 0x7fxxxxxxxx</span></span><br><span class="line">  <span class="comment">// chunk = 7fpointer - 8 + 5. size = 0x7f</span></span><br><span class="line">freed_fastchunk-&gt;fd = &amp;__realloc_hook - <span class="number">8</span> + <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="Off-by-one-单字节溢出漏洞"><a href="#Off-by-one-单字节溢出漏洞" class="headerlink" title="Off-by-one 单字节溢出漏洞"></a>Off-by-one 单字节溢出漏洞</h2><p>通过溢出下一个块的size域,攻击者能够在堆中创造出重叠的内存块</p>
+<h3 id="扩展被释放块"><a href="#扩展被释放块" class="headerlink" title="扩展被释放块"></a>扩展被释放块</h3><p>若溢出块的下一块为被释放的块且处于Unsorted Bin 中, 则可以通过溢出一个字节来将其大 小扩大, 下次取得此块时就意味着其后的块将被覆 盖而造成进一步的溢出。</p>
+<img src="/2020/03/11/ptmalloc/image-20201218181759112.png" alt="image-20201218181759112" style="zoom:50%;">
+
+<h3 id="扩展已分配块"><a href="#扩展已分配块" class="headerlink" title="扩展已分配块"></a>扩展已分配块</h3><p>若溢出块的下一块为使用中的块, 则需要合理 控制溢出的字节, 使其被释放时的合并操作能够顺 利进行, 例如直接加上下一块的大小使其完全被覆 盖。下一次分配对应大小时, 即可取得已经被扩大的 块, 并造成进一步溢出。</p>
+<img src="/2020/03/11/ptmalloc/image-20201218181813210.png" alt="image-20201218181813210" style="zoom:50%;">
+
+<h3 id="收缩被释放块"><a href="#收缩被释放块" class="headerlink" title="收缩被释放块"></a>收缩被释放块</h3><p> 此情况针对溢出的字节只能为 0 的情况, 此时</p>
+<p>可以将下一个被释放块的大小缩小, 如此一来在之 后分裂此块时将无法正确更新后一块的 prev_size 域,导致释放时出现重叠的堆块。</p>
+<img src="/2020/03/11/ptmalloc/image-20201218183231401.png" alt="image-20201218183231401" style="zoom:50%;">
+
+<p>B2为fasten</p>
+<h2 id="The-House-of-Einherjar"><a href="#The-House-of-Einherjar" class="headerlink" title="The House of Einherjar"></a>The House of Einherjar</h2><p>此方法也是针对溢出字节只能为 0 的情况, 利 用的思路是不将溢出块下一块的大小缩小, 而是仅 仅更新后一块的 prev_size 域, 使其在被释放时能够 找到之前一个合法的被释放块并与其合并, 造成堆 块的重叠</p>
+<img src="/2020/03/11/ptmalloc/image-20201218183211613.png" alt="image-20201218183211613" style="zoom:50%;">
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">C-&gt;prev_size = <span class="number">0x200</span></span><br><span class="line">LOWb(C-&gt;size) = <span class="number">0</span> <span class="comment">// prev_inuse = false</span></span><br><span class="line"><span class="built_in">free</span>(C);</span><br><span class="line"><span class="built_in">malloc</span>(<span class="number">0x300</span><span class="number">-8</span>) <span class="comment">// = A+B+C</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="成功后的利用方式"><a href="#成功后的利用方式" class="headerlink" title="成功后的利用方式"></a>成功后的利用方式</h3><h4 id="malloc包含已释放块"><a href="#malloc包含已释放块" class="headerlink" title="malloc包含已释放块"></a>malloc包含已释放块</h4><p>如果是fastbin那就简单</p>
+<h4 id="malloc包含已分配块"><a href="#malloc包含已分配块" class="headerlink" title="malloc包含已分配块"></a>malloc包含已分配块</h4><h2 id="攻击-Unsorted-Bin-可le-a-k"><a href="#攻击-Unsorted-Bin-可le-a-k" class="headerlink" title="攻击 Unsorted Bin [可le a k]"></a>攻击 Unsorted Bin [可le a k]</h2><p>当 Unsorted Bin 中的块恰好为分配的块大小时</p>
+<p>则会直接从 Unsorted Bin 中移除 返回给用户。若不是, 则将其投入对应的 Bin 之中。</p>
+<p>无论结果如何, 其最终都将从 Unsorted Bin 中移除, 而这里移除使用的方法并<strong>不是 2.3 节中释放操作使 用的 unlink 宏</strong>, 而是如下代码:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">bck = victim-&gt;bk; </span><br><span class="line">...</span><br><span class="line">unsorted_chunks (av)-&gt;bk = bck; </span><br><span class="line">bck-&gt;fd = unsorted_chunks (av);</span><br></pre></td></tr></table></figure>
+
+<p>不同于 unlink 宏, 这里对 Unsorted Bin 的链表完 整性并没有做检查, 导致如果能够可以修改某一个 处于 Unsorted Bin 中的块的 bk 指针, 则可以造成一 个任意内存写入, 可以将 bk + 16 的位置改写为 Unsorted Bin 的地址, 但 Unsorted Bin 的 bk 指针将被 破坏, 下一次再使用 Unsorted Bin 时, 将可能由于 bck 的位置不可写而造成程序崩溃。</p>
+<p>Leak: 如果last-&gt;bk = ptr, 则malloc后， ptr-&gt;fd = unsorted_bin, 可以直接泄漏ptr-&gt;fd, 且无检查</p>
+<h1 id="2-29-tcache-【无le-a-k】"><a href="#2-29-tcache-【无le-a-k】" class="headerlink" title="2.29 tcache 【无le a k】"></a>2.29 tcache 【无le a k】</h1><p>tcache全称thread local caching，是<strong>glibc2.26</strong>后新加入的一种缓存机制（在Ubuntu 18及之后的版本中应用），提升了不少性能，但是与此同时也大大牺牲了安全性，在ctf-wiki中介绍tcache的标题便是tcache makes heap exploitation easy again，与fastbin非常相似但优先级高于fastbin，且相对于fastbin来说少了很多检查，所以更加便于进行漏洞利用。</p>
+<ul>
+<li>可直接double free</li>
+<li></li>
+</ul>
+<p>tcache 和 fastbin在free中并没有被清除inuse标志</p>
+<ol>
+<li><p>tcache机制的主体是tcache_perthread_struct结构体，其中包含单链表tcache_entry</p>
+</li>
+<li><p>单链表tcache_entry，也即tcache Bin的默认最大数量是<strong>64</strong>，在64位程序中申请的最小chunk size为32，之后以16字节依次递增，所以size大小范围是0x20-0x410，也就是说我们必须要malloc size≤0x408的chunk</p>
+</li>
+<li><p>每一个单链表tcache Bin中默认允许存放的chunk块最大数量是<strong>7</strong></p>
+</li>
+<li><p>在申请chunk块时，如果<code>tcache Bin</code>中有符合要求的chunk，则直接返回；</p>
+<p>如果在fastbin中有符合要求的chunk，则先将对应fastbin中其他chunk加入相应的tcache Bin中，直到达到tcache Bin的数量上限，然后返回符合符合要求的chunk；</p>
+<p>如果在smallbin中有符合要求的chunk，则与fastbin相似，先将双链表中的其他剩余chunk加入到tcache中，再进行返回</p>
+</li>
+<li><p>在释放chunk块时，如果chunk size符合tcache Bin要求且相应的tcache Bin没有装满，则直接加入相应的tcache Bin</p>
+</li>
+<li><p>与fastbin相似，在tcache Bin中的chunk不会进行合并，因为它们的<code>pre_inuse</code>位会置成1</p>
+</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">	idx <span class="number">0</span>   bytes <span class="number">0.</span><span class="number">.24</span> (<span class="number">64</span>-bit) <span class="keyword">or</span> <span class="number">0.</span><span class="number">.12</span> (<span class="number">32</span>-bit) <span class="number">16</span></span><br><span class="line">  idx <span class="number">1</span>   bytes <span class="number">25.</span><span class="number">.40</span> <span class="keyword">or</span> <span class="number">13.</span><span class="number">.20</span> <span class="number">17</span></span><br><span class="line">  idx <span class="number">2</span>   bytes <span class="number">41.</span><span class="number">.56</span> <span class="keyword">or</span> <span class="number">21.</span><span class="number">.28</span></span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span> *<span class="title">next</span>;</span>        <span class="comment">//默认允许存放的chunk块最大数量是 7</span></span><br><span class="line">&#125; tcache_entry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="keyword">char</span> counts[TCACHE_MAX_BINS];     <span class="comment">//数组counts用于存放每个bins中的chunk数量</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span> *<span class="title">entries</span>[<span class="title">TCACHE_MAX_BINS</span>/*64*/];</span>   <span class="comment">//数组entries用于放置64个bins</span></span><br><span class="line">&#125; tcache_perthread_struct;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="comment">//指向chunk当中的用户内存区，第一个变量是一个指针，指向tcache的下一个chunk，</span></span><br><span class="line">	<span class="comment">//就是单链表访问</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span> *<span class="title">next</span>;</span></span><br><span class="line">  <span class="comment">/* 这个字段是用来检测双重free释放的  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span> *<span class="title">key</span>;</span></span><br><span class="line">&#125; tcache_entry;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>tcache机制允许将空闲的chunk以链表的形式缓存在线程各自tcache的bin中。</p>
+<p>下一次malloc时可以优先在tcache中寻找符合的chunk并提取出来。</p>
+<p>他缺少充分的安全检查，如果有机会构造内部chunk数据结构的特殊字段，我们可以有机会获得任意想要的地址。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">+tcache_put (mchunkptr chunk, <span class="keyword">size_t</span> tc_idx)</span><br><span class="line">+&#123;</span><br><span class="line">+  tcache_entry *e = (tcache_entry *) chunk2mem (chunk);</span><br><span class="line">+  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line">+  e-&gt;next = tcache-&gt;entries[tc_idx];</span><br><span class="line">+  tcache-&gt;entries[tc_idx] = e;</span><br><span class="line">+  ++(tcache-&gt;counts[tc_idx]);</span><br><span class="line">+&#125;</span><br><span class="line"></span><br><span class="line">+<span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">+tcache_get (<span class="keyword">size_t</span> tc_idx)</span><br><span class="line">+&#123;</span><br><span class="line">+  tcache_entry *e = tcache-&gt;entries[tc_idx];</span><br><span class="line">+  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line">+  assert (tcache-&gt;entries[tc_idx] &gt; <span class="number">0</span>);</span><br><span class="line">+  tcache-&gt;entries[tc_idx] = e-&gt;next;</span><br><span class="line">+  --(tcache-&gt;counts[tc_idx]);</span><br><span class="line">+  <span class="keyword">return</span> (<span class="keyword">void</span> *) e;</span><br><span class="line">+&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">  <span class="comment">//检查bytes合法性,并获取请求的标准chunk大小</span></span><br><span class="line">  checked_request2size (bytes, tbytes);</span><br><span class="line">  <span class="comment">//获得tcache对应请求大小bin的索引</span></span><br><span class="line">  <span class="keyword">size_t</span> tc_idx = csize2tidx (tbytes);</span><br><span class="line">  <span class="comment">//如果没有初始化tcache，那么我们初始化tcache</span></span><br><span class="line">  MAYBE_INIT_TCACHE ();</span><br><span class="line"></span><br><span class="line">  DIAG_PUSH_NEEDS_COMMENT;</span><br><span class="line">  <span class="comment">//检查tcache给定索引是否有chunk满足条件，有就直接取出来</span></span><br><span class="line">  <span class="comment">//索引大小不能超过index，并且tcache存在，并且tcache对应索引有块，初始化时不为0</span></span><br><span class="line">  <span class="keyword">if</span> (tc_idx &lt; mp_.tcache_bins</span><br><span class="line">      <span class="comment">/*&amp;&amp; tc_idx &lt; TCACHE_MAX_BINS*/</span> <span class="comment">/* to appease gcc */</span></span><br><span class="line">      &amp;&amp; tcache</span><br><span class="line">      &amp;&amp; tcache-&gt;entries[tc_idx] != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">return</span> tcache_get (tc_idx);<span class="comment">//获取tcache</span></span><br><span class="line">    &#125;</span><br><span class="line">  DIAG_POP_NEEDS_COMMENT;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">file:<span class="comment">///Users/notify/ctf-wiki/pwn/linux/glibc-heap/tcache_attack-zh/</span></span><br></pre></td></tr></table></figure>
+
+<p>file:///Users/notify/ctf-wiki/site/pwn/linux/glibc-heap/tcache_attack-zh/index.html</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>• <a target="_blank" rel="noopener" href="http://phrack.org/issues/58/4.html">http://phrack.org/issues/58/4.html</a> </p>
+<p>• <a target="_blank" rel="noopener" href="http://acez.re/ctf-writeup-hitcon-ctf-2014-stkof-or-modern-heap-overflow/">http://acez.re/ctf-writeup-hitcon-ctf-2014-stkof-or-modern-heap-overflow/</a></p>
+<p>Glibc Adventures: The Forgotten Chunks,</p>
+<p>• <a target="_blank" rel="noopener" href="https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/">https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/heap/" rel="tag"># heap</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/10/web/osi%20https/" rel="next" title="osi https kpl">
+                <i class="fa fa-chevron-left"></i> osi https kpl
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/15/sdk-adb-qemu/" rel="prev" title="sdk-adb-qemu">
+                sdk-adb-qemu <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/notify-bibi" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:qq2496424084@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://driverxdw.github.io/" title="driverxdwのblog" target="_blank">driverxdwのblog</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Heap"><span class="nav-number">1.</span> <span class="nav-text">Heap</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ptmalloc"><span class="nav-number">2.</span> <span class="nav-text">ptmalloc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#32"><span class="nav-number">2.1.</span> <span class="nav-text">32</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#64"><span class="nav-number">2.2.</span> <span class="nav-text">64</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bins"><span class="nav-number">2.3.</span> <span class="nav-text">Bins:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Fast-Bins"><span class="nav-number">2.3.1.</span> <span class="nav-text">Fast Bins:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unsorted-Bins"><span class="nav-number">2.3.2.</span> <span class="nav-text">Unsorted Bins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Small-Bins"><span class="nav-number">2.3.3.</span> <span class="nav-text">Small Bins:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Large-Bins"><span class="nav-number">2.3.4.</span> <span class="nav-text">Large Bins</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#malloc%E6%B5%81%E7%A8%8B"><span class="nav-number">2.4.</span> <span class="nav-text">malloc流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#free%E6%B5%81%E7%A8%8B"><span class="nav-number">2.5.</span> <span class="nav-text">free流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#heap%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-number">2.6.</span> <span class="nav-text">heap伪代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unlink-Attack"><span class="nav-number">2.7.</span> <span class="nav-text">unlink Attack</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fastbin-attack"><span class="nav-number">2.8.</span> <span class="nav-text">Fastbin_attack</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Prime-glibc-2-3-5-2-19"><span class="nav-number">2.9.</span> <span class="nav-text">The House of Prime glibc [2.3.5 - 2.19)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Mind-%E5%BD%93%E5%89%8D%E6%B5%81%E8%A1%8C%E7%9A%84-glibc-%E4%B8%AD%E5%B7%B2%E4%B8%8D%E5%86%8D%E5%8F%AF%E8%A1%8C"><span class="nav-number">2.10.</span> <span class="nav-text">The House of Mind.  [当前流行的 glibc 中已不再可行]</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Force-%E3%80%90%E9%9C%80%E8%A6%81%E8%BF%9B%E8%A1%8Cheap%E6%B3%84%E9%9C%B2%E3%80%91"><span class="nav-number">2.11.</span> <span class="nav-text">The House of Force 【需要进行heap泄露】</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Lore-%E3%80%90%E5%8F%AF%E8%A1%8C%E3%80%91"><span class="nav-number">2.12.</span> <span class="nav-text">The House of Lore 【可行】</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Spirit-fastbins-attack"><span class="nav-number">2.13.</span> <span class="nav-text">The House of Spirit [fastbins attack]</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E4%BB%A3%E4%BF%9D%E6%8A%A4%E6%89%8B%E6%AE%B5NX-ALSR-PIE-RELRO"><span class="nav-number">2.14.</span> <span class="nav-text">现代保护手段NX ALSR PIE RELRO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86%E7%9A%84%E6%94%BB%E5%87%BB%E6%89%8B%E6%AE%B5"><span class="nav-number">2.15.</span> <span class="nav-text">堆的攻击手段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#double-free"><span class="nav-number">2.16.</span> <span class="nav-text">double free</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#realloc-hook-fastbin-attack"><span class="nav-number">2.17.</span> <span class="nav-text">__realloc_hook [fastbin attack]</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Off-by-one-%E5%8D%95%E5%AD%97%E8%8A%82%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E"><span class="nav-number">2.18.</span> <span class="nav-text">Off-by-one 单字节溢出漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E8%A2%AB%E9%87%8A%E6%94%BE%E5%9D%97"><span class="nav-number">2.18.1.</span> <span class="nav-text">扩展被释放块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E5%B7%B2%E5%88%86%E9%85%8D%E5%9D%97"><span class="nav-number">2.18.2.</span> <span class="nav-text">扩展已分配块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E7%BC%A9%E8%A2%AB%E9%87%8A%E6%94%BE%E5%9D%97"><span class="nav-number">2.18.3.</span> <span class="nav-text">收缩被释放块</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-House-of-Einherjar"><span class="nav-number">2.19.</span> <span class="nav-text">The House of Einherjar</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%88%90%E5%8A%9F%E5%90%8E%E7%9A%84%E5%88%A9%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">2.19.1.</span> <span class="nav-text">成功后的利用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc%E5%8C%85%E5%90%AB%E5%B7%B2%E9%87%8A%E6%94%BE%E5%9D%97"><span class="nav-number">2.19.1.1.</span> <span class="nav-text">malloc包含已释放块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#malloc%E5%8C%85%E5%90%AB%E5%B7%B2%E5%88%86%E9%85%8D%E5%9D%97"><span class="nav-number">2.19.1.2.</span> <span class="nav-text">malloc包含已分配块</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E5%87%BB-Unsorted-Bin-%E5%8F%AFle-a-k"><span class="nav-number">2.20.</span> <span class="nav-text">攻击 Unsorted Bin [可le a k]</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-29-tcache-%E3%80%90%E6%97%A0le-a-k%E3%80%91"><span class="nav-number">3.</span> <span class="nav-text">2.29 tcache 【无le a k】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">3.1.</span> <span class="nav-text">References</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">notify</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
