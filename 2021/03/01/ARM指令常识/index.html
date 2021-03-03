@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zn">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ARM," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="armARM属于RISC架构  ARM指令集是（32　）位宽，Thumb指令集是（16　）位宽的。 复位后，ARM处理器处于（SVC）模式，（ARM） 状态  ARM处理器总共（ 37个）个寄存器，System模式下使用（17个）个寄存器，SVC模式下使用（18个）个寄存器。 ARM处理器中优先级别最高的异常为（RESET），（ FIQ、IRQ）异常可以用来相应中断  ATPCS规定中，推荐子函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ARM指令 常识">
+<meta property="og:url" content="http://notify-bibi.github.io/2021/03/01/ARM%E6%8C%87%E4%BB%A4%E5%B8%B8%E8%AF%86/index.html">
+<meta property="og:site_name" content="notifyのblog">
+<meta property="og:description" content="armARM属于RISC架构  ARM指令集是（32　）位宽，Thumb指令集是（16　）位宽的。 复位后，ARM处理器处于（SVC）模式，（ARM） 状态  ARM处理器总共（ 37个）个寄存器，System模式下使用（17个）个寄存器，SVC模式下使用（18个）个寄存器。 ARM处理器中优先级别最高的异常为（RESET），（ FIQ、IRQ）异常可以用来相应中断  ATPCS规定中，推荐子函数">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-03-01T14:55:09.000Z">
+<meta property="article:modified_time" content="2021-03-02T14:49:29.988Z">
+<meta property="article:author" content="notify">
+<meta property="article:tag" content="ARM">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notify-bibi.github.io/2021/03/01/ARM指令常识/"/>
+
+
+
+
+
+  <title>ARM指令 常识 | notifyのblog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zn">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">notifyのblog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notify-bibi.github.io/2021/03/01/ARM%E6%8C%87%E4%BB%A4%E5%B8%B8%E8%AF%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="notifyのblog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ARM指令 常识</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-01T22:55:09+08:00">
+                2021-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ARM/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="arm"><a href="#arm" class="headerlink" title="arm"></a>arm</h1><p>ARM属于RISC架构</p>
+<p> ARM指令集是（32　）位宽，Thumb指令集是（16　）位宽的。</p>
+<p>复位后，ARM处理器处于（SVC）模式，（ARM） 状态</p>
+<p> ARM处理器总共（ 37个）个寄存器，System模式下使用（17个）个寄存器，SVC模式下使用（18个）个寄存器。</p>
+<p>ARM处理器中优先级别最高的异常为（RESET），（ FIQ、IRQ）异常可以用来相应中断</p>
+<p> ATPCS规定中，推荐子函数参数最大为（4） 个</p>
+<p> ATPCS规定中，栈是（满减）</p>
+<p>在用ARM汇编编程是，其寄存器有多个别名，通常PC是指（R15），LR是指（ R14 ），SP是指（R13）</p>
+<p>CPSR寄存器中反映处理器状态的位是（T位）</p>
+<p>下面属于ARM子程序调用指令的是（BL）</p>
+<p>ARM7属于（冯.诺依曼）结构，ARM9属于（哈佛）结构。</p>
+<p>ARM7是（3）级流水线，ARM9是（5）级流水线。</p>
+<p> ARM中可以访问状态寄存器的指令是（MRS），能够访问内存的指令是（LDR，非MOV）</p>
+<p>异步串口中数据位可以是（5,6,7,8）</p>
+<p> I2C协议中有几根线（2）</p>
+<p> I2C协议中设备地址模式有（7位地址模式\10位地址模式）</p>
+<p>S3C2410采用的是（ARM920T）核心</p>
+<p>在串行异步通讯中，发送端串口的TxD要和接收端串口的（RxD）相连接</p>
+<h3 id="1-简述ARM发生异常时，ARM核心会自动做哪些事情？从异常返回时，我们要做哪些事情？"><a href="#1-简述ARM发生异常时，ARM核心会自动做哪些事情？从异常返回时，我们要做哪些事情？" class="headerlink" title="1.简述ARM发生异常时，ARM核心会自动做哪些事情？从异常返回时，我们要做哪些事情？"></a>1.简述ARM发生异常时，ARM核心会自动做哪些事情？从异常返回时，我们要做哪些事情？</h3><p>1） 当异常产生时, ARM core:</p>
+<p>拷贝CPSR到SPSR_<mode><br>设置适当的CPSR位：<br>改变处理器状态进入ARM状态<br>改变处理器模式进入相应的异常模式<br>设置中断禁止位禁止相应中断(如果需要)<br>保存返回地址到LR_<mode><br>设置PC为相应的异常向量</mode></mode></p>
+<p>2） 返回时,异常处理需要:</p>
+<p>从SPSR_<mode>恢复CPSR<br>从LR_<mode>恢复PC<br>Note:这些操作只能在ARM态执行.</mode></mode></p>
+<h3 id="2-用ARM汇编指令写出实现64位加法和64位减法的代码段，使用的寄存器请自行分配。"><a href="#2-用ARM汇编指令写出实现64位加法和64位减法的代码段，使用的寄存器请自行分配。" class="headerlink" title="2.用ARM汇编指令写出实现64位加法和64位减法的代码段，使用的寄存器请自行分配。"></a>2.用ARM汇编指令写出实现64位加法和64位减法的代码段，使用的寄存器请自行分配。</h3><p>假定低32位数存放在r0和r1里面，高32位数存放在r2和r3里面。<br>加法：<br>ADDS r0, r0, r1 //加S是因为要让这个操作影响标志位<br>ADC r2, r2, r3 //ADC是带进位的加法，如果上一条指令产生进位则一起加进来<br>减法：<br>SUBS r0, r0, r1 //加S是因为要让这个操作影响标志位<br>SBC r2, r2, r3 // SBC是带进位的减法指令</p>
+<h3 id="3-ARM处理器的模式-各个发生异常时ARM处理器所处的模式"><a href="#3-ARM处理器的模式-各个发生异常时ARM处理器所处的模式" class="headerlink" title="3.ARM处理器的模式:  各个发生异常时ARM处理器所处的模式"></a>3.ARM处理器的模式:  各个发生异常时ARM处理器所处的模式</h3><ul>
+<li>User :非特权模式，大部分任务执行在这种模式}</li>
+<li>FIQ : 当一个高优先级（fast)}中断产生时将会进入这种模式</li>
+<li>IRQ : 当一个低优先级（normal)中断产生时将会进入这种模式}</li>
+<li>Supervisor}:当复位或软中断指令执行时将会进入这种模式</li>
+<li>Abort :当存取异常时将会进入这种模式}</li>
+<li>Undef :}当执行未定义指令时会进入这种模式</li>
+<li>System :使用和User模式相同寄存器集的特权模式}</li>
+<li>SVC:?</li>
+</ul>
+<p>ARM处理器的异常:</p>
+<ul>
+<li>Reset</li>
+<li>Data Abort</li>
+<li>FIQ</li>
+<li>IRQ</li>
+<li>Prefetch Abort</li>
+<li>SWI</li>
+<li>Undefined instruction</li>
+</ul>
+<h3 id="4-FIQ的什么特点使得它处理的速度比IRQ快？"><a href="#4-FIQ的什么特点使得它处理的速度比IRQ快？" class="headerlink" title="4. FIQ的什么特点使得它处理的速度比IRQ快？"></a>4. FIQ的什么特点使得它处理的速度比IRQ快？</h3><p>1）FIQ优先级比IRQ高，不会被中断<br>2）FIQ有自己的专属寄存器：r8~r12，不用对通用寄存器入栈保护，可以加快速度<br>3）FIQ位于异常向量表的末尾0x1c，故无需跳转，可以在这里直接放置异常处理函数</p>
+<h3 id="5-什么指令可以放在中断向量表？"><a href="#5-什么指令可以放在中断向量表？" class="headerlink" title="5.什么指令可以放在中断向量表？"></a>5.什么指令可以放在中断向量表？</h3><p>跳转指令，给PC赋值的指令<br>B，LDR，MOV</p>
+<h3 id="6-ARM处理器-中断向量表位于存储器的什么位置？"><a href="#6-ARM处理器-中断向量表位于存储器的什么位置？" class="headerlink" title="6. ARM处理器 中断向量表位于存储器的什么位置？"></a>6. ARM处理器 中断向量表位于存储器的什么位置？</h3><p>默认：0x0<br>也可以配置成：0Xffff0000</p>
+<h3 id="7-下列ARM指令将做什么"><a href="#7-下列ARM指令将做什么" class="headerlink" title="7.下列ARM指令将做什么?"></a>7.下列ARM指令将做什么?</h3><p>a) LDRH r0,[r1,#6]<br>b) LDR r0, =0x999<br>a：将r1寄存器的值加上6，然后把以这个值为地址的内存单元里的值取半字（低16位）赋给r0<br>b：将立即数0x999赋给r0，注意这是一个伪指令</p>
+<h3 id="8-SWP指令的优势是什么-用来实现什么功能？"><a href="#8-SWP指令的优势是什么-用来实现什么功能？" class="headerlink" title="8. SWP指令的优势是什么?用来实现什么功能？"></a>8. SWP指令的优势是什么?用来实现什么功能？</h3><p>功能：在寄存器和存储器之间，由一次存储器读和一次存储器写组成的原子操作。完成一个字节或字的交换。<br>可以用来实现信号量</p>
+<h3 id="9-S3C2410支持几种引导方式（或者说是内存映射方式）？简述Nand引导方式S3C2410硬件做的事情。"><a href="#9-S3C2410支持几种引导方式（或者说是内存映射方式）？简述Nand引导方式S3C2410硬件做的事情。" class="headerlink" title="9. S3C2410支持几种引导方式（或者说是内存映射方式）？简述Nand引导方式S3C2410硬件做的事情。"></a>9. S3C2410支持几种引导方式（或者说是内存映射方式）？简述Nand引导方式S3C2410硬件做的事情。</h3><p>1）nor flash启动方式。<br>2）nand flash启动方式。<br>从Nand flash启动时，S3C2410首先会执行固化在片上ROM中的一段小程序，这段程序负责将nand flash前2K的代码搬移到片上RAM，然后将PC指针指向0x0地址（注意这个时候片上RAM被映射到0x0的起始地址）</p>
+<h3 id="10-简述static和volatile关键字的含义和作用。"><a href="#10-简述static和volatile关键字的含义和作用。" class="headerlink" title="10.简述static和volatile关键字的含义和作用。"></a>10.简述static和volatile关键字的含义和作用。</h3><p>c语言中static关键字有两个作用，一是文件作用域，二是函数作用域。<br>文件作用域关键字static的作用是，以static申明的全局变量、函数不得被其他文件所引用<br>static另外一个用途是函数内部静态变量，只会被初始化一次，而且变量存储在全局数据段中而不是函数栈中，所以其生命期会一直持续到程序退出<br>一个定义为volatile的变量是说这变量可能会被意想不到地改变，这样，编译器就不会去假设这个变量的值了。精确地说就是，优化器在用到这个变量时必须每次都小心地重新读取这个变量的值，而不是使用保存在寄存器里的备份</p>
+<h1 id="ARM指令集"><a href="#ARM指令集" class="headerlink" title="ARM指令集"></a>ARM指令集</h1><p> ARM处理器的指令集可以分为跳转指令、数据处理指令、程序状态寄存器（PSR）处理指令、加载/存储指令、协处理器指令和异常产生指令6大指令。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ARM/" rel="tag"># ARM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/03/01/winafl/" rel="next" title="winafl">
+                <i class="fa fa-chevron-left"></i> winafl
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/notify-bibi" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:qq2496424084@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://driverxdw.github.io/" title="driverxdwのblog" target="_blank">driverxdwのblog</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#arm"><span class="nav-number">1.</span> <span class="nav-text">arm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%AE%80%E8%BF%B0ARM%E5%8F%91%E7%94%9F%E5%BC%82%E5%B8%B8%E6%97%B6%EF%BC%8CARM%E6%A0%B8%E5%BF%83%E4%BC%9A%E8%87%AA%E5%8A%A8%E5%81%9A%E5%93%AA%E4%BA%9B%E4%BA%8B%E6%83%85%EF%BC%9F%E4%BB%8E%E5%BC%82%E5%B8%B8%E8%BF%94%E5%9B%9E%E6%97%B6%EF%BC%8C%E6%88%91%E4%BB%AC%E8%A6%81%E5%81%9A%E5%93%AA%E4%BA%9B%E4%BA%8B%E6%83%85%EF%BC%9F"><span class="nav-number">1.0.1.</span> <span class="nav-text">1.简述ARM发生异常时，ARM核心会自动做哪些事情？从异常返回时，我们要做哪些事情？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%A8ARM%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4%E5%86%99%E5%87%BA%E5%AE%9E%E7%8E%B064%E4%BD%8D%E5%8A%A0%E6%B3%95%E5%92%8C64%E4%BD%8D%E5%87%8F%E6%B3%95%E7%9A%84%E4%BB%A3%E7%A0%81%E6%AE%B5%EF%BC%8C%E4%BD%BF%E7%94%A8%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%B7%E8%87%AA%E8%A1%8C%E5%88%86%E9%85%8D%E3%80%82"><span class="nav-number">1.0.2.</span> <span class="nav-text">2.用ARM汇编指令写出实现64位加法和64位减法的代码段，使用的寄存器请自行分配。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-ARM%E5%A4%84%E7%90%86%E5%99%A8%E7%9A%84%E6%A8%A1%E5%BC%8F-%E5%90%84%E4%B8%AA%E5%8F%91%E7%94%9F%E5%BC%82%E5%B8%B8%E6%97%B6ARM%E5%A4%84%E7%90%86%E5%99%A8%E6%89%80%E5%A4%84%E7%9A%84%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.0.3.</span> <span class="nav-text">3.ARM处理器的模式:  各个发生异常时ARM处理器所处的模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-FIQ%E7%9A%84%E4%BB%80%E4%B9%88%E7%89%B9%E7%82%B9%E4%BD%BF%E5%BE%97%E5%AE%83%E5%A4%84%E7%90%86%E7%9A%84%E9%80%9F%E5%BA%A6%E6%AF%94IRQ%E5%BF%AB%EF%BC%9F"><span class="nav-number">1.0.4.</span> <span class="nav-text">4. FIQ的什么特点使得它处理的速度比IRQ快？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%BB%80%E4%B9%88%E6%8C%87%E4%BB%A4%E5%8F%AF%E4%BB%A5%E6%94%BE%E5%9C%A8%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.0.5.</span> <span class="nav-text">5.什么指令可以放在中断向量表？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-ARM%E5%A4%84%E7%90%86%E5%99%A8-%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F%E8%A1%A8%E4%BD%8D%E4%BA%8E%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E4%BB%80%E4%B9%88%E4%BD%8D%E7%BD%AE%EF%BC%9F"><span class="nav-number">1.0.6.</span> <span class="nav-text">6. ARM处理器 中断向量表位于存储器的什么位置？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E4%B8%8B%E5%88%97ARM%E6%8C%87%E4%BB%A4%E5%B0%86%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">1.0.7.</span> <span class="nav-text">7.下列ARM指令将做什么?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-SWP%E6%8C%87%E4%BB%A4%E7%9A%84%E4%BC%98%E5%8A%BF%E6%98%AF%E4%BB%80%E4%B9%88-%E7%94%A8%E6%9D%A5%E5%AE%9E%E7%8E%B0%E4%BB%80%E4%B9%88%E5%8A%9F%E8%83%BD%EF%BC%9F"><span class="nav-number">1.0.8.</span> <span class="nav-text">8. SWP指令的优势是什么?用来实现什么功能？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-S3C2410%E6%94%AF%E6%8C%81%E5%87%A0%E7%A7%8D%E5%BC%95%E5%AF%BC%E6%96%B9%E5%BC%8F%EF%BC%88%E6%88%96%E8%80%85%E8%AF%B4%E6%98%AF%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%96%B9%E5%BC%8F%EF%BC%89%EF%BC%9F%E7%AE%80%E8%BF%B0Nand%E5%BC%95%E5%AF%BC%E6%96%B9%E5%BC%8FS3C2410%E7%A1%AC%E4%BB%B6%E5%81%9A%E7%9A%84%E4%BA%8B%E6%83%85%E3%80%82"><span class="nav-number">1.0.9.</span> <span class="nav-text">9. S3C2410支持几种引导方式（或者说是内存映射方式）？简述Nand引导方式S3C2410硬件做的事情。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E7%AE%80%E8%BF%B0static%E5%92%8Cvolatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%90%AB%E4%B9%89%E5%92%8C%E4%BD%9C%E7%94%A8%E3%80%82"><span class="nav-number">1.0.10.</span> <span class="nav-text">10.简述static和volatile关键字的含义和作用。</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ARM%E6%8C%87%E4%BB%A4%E9%9B%86"><span class="nav-number">2.</span> <span class="nav-text">ARM指令集</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">notify</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zn">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="FUZZ," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言代码审计存在一定的局限性，一般都是静态的检测，对于复杂的算法来说，逻辑漏洞更加难以发觉，所以需要动态的代码执行技术来进行深层次的漏洞触发 fuzz 的种类 Generation Based ：通过对目标协议或文件格式建模的方法，从零开始产生测试用例，没有先前的状态 Mutation Based ：基于一些规则，从已有的数据样本或存在的状态变异而来 Evolutionary ：包含了上述两种，同">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fuzz ImageMagick">
+<meta property="og:url" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/index.html">
+<meta property="og:site_name" content="notifyのblog">
+<meta property="og:description" content="前言代码审计存在一定的局限性，一般都是静态的检测，对于复杂的算法来说，逻辑漏洞更加难以发觉，所以需要动态的代码执行技术来进行深层次的漏洞触发 fuzz 的种类 Generation Based ：通过对目标协议或文件格式建模的方法，从零开始产生测试用例，没有先前的状态 Mutation Based ：基于一些规则，从已有的数据样本或存在的状态变异而来 Evolutionary ：包含了上述两种，同">
+<meta property="og:locale">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/AFL.jpg">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/image-20200413024247769.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/afl_multi.jpg">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/status.png">
+<meta property="article:published_time" content="2020-04-10T04:36:21.000Z">
+<meta property="article:modified_time" content="2021-02-26T13:28:25.404Z">
+<meta property="article:author" content="notify">
+<meta property="article:tag" content="FUZZ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://notify-bibi.github.io/2020/04/10/afl-fuzz/AFL.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notify-bibi.github.io/2020/04/10/afl-fuzz/"/>
+
+
+
+
+
+  <title>fuzz ImageMagick | notifyのblog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zn">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">notifyのblog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notify-bibi.github.io/2020/04/10/afl-fuzz/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="notifyのblog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">fuzz ImageMagick</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-04-10T12:36:21+08:00">
+                2020-04-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><code>代码审计存在一定的局限性，一般都是静态的检测，对于复杂的算法来说，逻辑漏洞更加难以发觉，所以需要动态的代码执行技术来进行深层次的漏洞触发</code></p>
+<h1 id="fuzz-的种类"><a href="#fuzz-的种类" class="headerlink" title="fuzz 的种类"></a><strong>fuzz 的种类</strong></h1><ul>
+<li><code>Generation Based</code> ：通过对目标协议或文件格式建模的方法，从零开始产生测试用例，没有先前的状态</li>
+<li><code>Mutation Based</code> ：基于一些规则，从已有的数据样本或存在的状态变异而来</li>
+<li><code>Evolutionary</code> ：包含了上述两种，同时会根据代码覆盖率的回馈进行变异。</li>
+</ul>
+<h1 id="AFL"><a href="#AFL" class="headerlink" title="AFL"></a>AFL</h1><p>模糊测试（Fuzzing）技术作为漏洞挖掘最有效的手段之一。对整体程序进行Fuzzing</p>
+<img src="/2020/04/10/afl-fuzz/AFL.jpg" alt="AFL" style="zoom: 40%;">
+
+<h2 id="1，Build"><a href="#1，Build" class="headerlink" title="1，Build:"></a>1，Build:</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/google/AFL.git ~/afl-src</span><br><span class="line">cd ~/afl-src/qemu_mode</span><br><span class="line">./build_qemu_support.sh</span><br><span class="line">cd .. &amp;&amp; make install</span><br><span class="line"><span class="meta">#</span><span class="bash">开启崩溃转储，而不是交给崩溃处理程序</span></span><br><span class="line">echo core &gt;/proc/sys/kernel/core_pattern</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2，Build-test-target"><a href="#2，Build-test-target" class="headerlink" title="2，Build test target"></a>2，Build test target</h2><p>有两种</p>
+<p>​        一种是开源项目，那么直接在源码里面插桩，使用<code>afl-clang</code>和<code>-clang++</code>（其实是将编译器编译出来的汇编文件进行插桩，使用了<code>~/afl-src/afl-as</code>，将程序的每个block都加上回调，看下一篇AFL源码解读）</p>
+<p><code>-fsanitize=address</code> 就是开启<code>AddressSanitizer</code> (ASAN)内存检测工具  【参考2】<br>-g 产生符号，方便调试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">clang -g -O1 -fsanitize=fuzzer                         mytarget.c <span class="comment"># Builds the fuzz target w/o sanitizers</span></span><br><span class="line">clang -g -O1 -fsanitize=fuzzer,address                 mytarget.c <span class="comment"># Builds the fuzz target with ASAN</span></span><br><span class="line">clang -g -O1 -fsanitize=fuzzer,signed-integer-overflow mytarget.c <span class="comment"># Builds the fuzz target with a part of UBSAN</span></span><br><span class="line">clang -g -O1 -fsanitize=fuzzer,memory                  mytarget.c <span class="comment"># Builds the fuzz target with MSAN</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">export LLVM_CONFIG=`which llvm-config-3.5`</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 考虑加上 --disable-shared，静态链接上去，方便模糊测试库，不然afl是不会去分析的</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> -fprofile-arcs -ftest-coverage 第9点要用，不然又要编译一次</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-fsanitize-coverage=func <span class="keyword">for</span> function-level coverage (very fast).</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-fsanitize-coverage=bb <span class="keyword">for</span> basic-block-level coverage (may add up to 30% extra slowdown).</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-fsanitize-coverage=edge <span class="keyword">for</span> edge-level coverage (up to 40% slowdown).</span></span><br><span class="line"></span><br><span class="line">./configure --disable-shared CC=&quot;afl-clang&quot; CXX=&quot;afl-clang++&quot; CFLAGS=&quot;-g -fsanitize=fuzzer,address -fprofile-arcs -ftest-coverage&quot; LFLAGS=&quot;-static&quot;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 快速编译</span> </span><br><span class="line">./configure --disable-shared CC=&quot;afl-clang-fast&quot; CXX=&quot;afl-clang-fast++&quot; CFLAGS=&quot;-g -fsanitize=fuzzer,address -fprofile-arcs -ftest-coverage&quot; LFLAGS=&quot;-static&quot;</span><br><span class="line"></span><br><span class="line">AFL_USE_ASAN=1 make</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 可以切换llvm版本</span></span><br><span class="line">update-alternatives </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">ASAN_OPTIONS, LSAN_OPTIONS, MSAN_OPTIONS or UBSAN_OPTIONS</span></span><br><span class="line"><span class="meta">#</span><span class="bash">可以生成sancov覆盖率文件</span></span><br><span class="line">ASAN_OPTIONS=coverage=1 ./magick</span><br></pre></td></tr></table></figure>
+
+<p>​        另一种就是闭源程序，必须要使用QEMU 运行时动态插桩，但是效率低了。方法就是afl-fuzz命令后加上-q</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#不在源程序插桩的编译，且想效率高的方法，使用clang, 比gcc好多了</span><br><span class="line">CC&#x3D;clang-3.5 CXX&#x3D;clang++-3.5 LLVM_CONFIG&#x3D;llvm-config-3.5 make</span><br></pre></td></tr></table></figure>
+
+
+
+<p>编译好的程序在 <code>ImageMagick/utilities/.libs/magick</code><br>看下依赖情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ldd ./magick</span><br><span class="line">	linux-vdso.so.1 =&gt;  (0x00007fffaef6e000)</span><br><span class="line">	libMagickCore-7.Q16HDRI.so.7 =&gt; not found</span><br><span class="line">	libMagickWand-7.Q16HDRI.so.7 =&gt; not found</span><br><span class="line">	libz.so.1 =&gt; /lib/x86_64-linux-gnu/libz.so.1 (0x00007f61ceded000)</span><br></pre></td></tr></table></figure>
+
+<p>把库<code>lnk</code>过来</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">#当然了，上面我们用的--disable-shared, 所以不需要了</span></span><br><span class="line"> ~/awork/ImageMagick/utilities/ [master*] ldd ./magick </span><br><span class="line">	linux-vdso.so.1 =&gt;  (0x00007fffcc1cc000)</span><br><span class="line">	libz.so.1 =&gt; /lib/x86_64-linux-gnu/libz.so.1 (0x00007f759aa3a000)</span><br><span class="line">	libgomp.so.1 =&gt; /usr/lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f759a818000)</span><br><span class="line">	libm.so.6 =&gt; /lib/x86_64-linux-gnu/libm.so.6 (0x00007f759a50f000)</span><br><span class="line">	libpthread.so.0 =&gt; /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f759a2f2000)</span><br><span class="line">	librt.so.1 =&gt; /lib/x86_64-linux-gnu/librt.so.1 (0x00007f759a0ea000)</span><br><span class="line">	libdl.so.2 =&gt; /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f7599ee6000)</span><br><span class="line">	libgcc_s.so.1 =&gt; /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f7599cd0000)</span><br><span class="line">	libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007f7599906000)</span><br><span class="line">	/lib64/ld-linux-x86-64.so.2 (0x00007f759ac54000)</span><br><span class="line"></span><br><span class="line"><span class="comment">#否则	</span></span><br><span class="line"><span class="comment">#设置库查找目录，不然ln过来还是找不到</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=./:<span class="variable">$LD_LIBRARY_PATH</span></span><br><span class="line">ln -s  ~/awork/ImageMagick/MagickCore/.libs/libMagickCore-7.Q16HDRI.so.7.0.0 libMagickCore-7.Q16HDRI.so.7</span><br><span class="line">ln -s  ~/awork/ImageMagick/MagickWand/.libs/libMagickWand-7.Q16HDRI.so.7.0.0 libMagickWand-7.Q16HDRI.so.7</span><br><span class="line">$ ldd ./magick                                                                              </span><br><span class="line">	linux-vdso.so.1 =&gt;  (0x00007ffd2ad5d000)</span><br><span class="line">	libMagickCore-7.Q16HDRI.so.7 =&gt; ./libMagickCore-7.Q16HDRI.so.7 (0x00007f72dfe5d000)</span><br><span class="line">	libMagickWand-7.Q16HDRI.so.7 =&gt; ./libMagickWand-7.Q16HDRI.so.7 (0x00007f72df788000)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="3，开源语料库（影响很大）"><a href="#3，开源语料库（影响很大）" class="headerlink" title="3，开源语料库（影响很大）"></a>3，开源语料库（影响很大）</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://lcamtuf.coredump.cx/afl/demo/">afl generated image test sets</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/google/fuzzer-test-suite">fuzzer-test-suite</a></li>
+<li><a target="_blank" rel="noopener" href="https://samples.libav.org/">libav samples</a></li>
+<li><a target="_blank" rel="noopener" href="http://samples.ffmpeg.org/">ffmpeg samples</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/MozillaSecurity/fuzzdata">fuzzdata</a> 【推荐】</li>
+<li><a target="_blank" rel="noopener" href="https://gitlab.anu.edu.au/lunar/moonshine">moonshine</a></li>
+</ul>
+<p>AFL给出的建议是最好小于1 KB，但其实可以根据自己测试的程序权衡，这在AFL文档的<code>perf_tips.txt</code>中有具体说明。</p>
+<h2 id="4，Extract"><a href="#4，Extract" class="headerlink" title="4，Extract"></a>4，Extract</h2><p>测试文件太多建议先筛选，不然太慢了</p>
+<h3 id="样本多样性-AFL-CMIN-移除执行相同代码的输入文件"><a href="#样本多样性-AFL-CMIN-移除执行相同代码的输入文件" class="headerlink" title="样本多样性   AFL-CMIN   移除执行相同代码的输入文件"></a>样本多样性   AFL-CMIN   移除执行相同代码的输入文件</h3><p>&emsp;&emsp;人工增加样本多样性的方法中，最简单且明显的就是搜集下载样本，放进输入文件夹。这个过程是对样本进行丰富的过程，它非常重要，但这个过程也常常引入样本的冗余，降低fuzz的效率。为了解决这个问题，需要从大量的样本中筛掉无用的样本。</p>
+<p>cmin操作的是文件集合，输出的也是文件集合。</p>
+<p>可能几千个文件和f一个文件来fuzz都是一样的结果，如果不进行cmin，非常低效。</p>
+<p>cmin也是成功使用afl-fuzz中必不可少的一步。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#把所有图放一个文件夹samples里面</span></span><br><span class="line">afl-cmin -i ~/fuzzdata/samples/ -o output_cmin -- ./magick convert @@ /dev/null</span><br><span class="line"></span><br><span class="line">找了10分钟错误，看了afl-cmin代码好像是分配空间不足导致，不要怕用 -m none </span><br><span class="line">Error: no instrumentation output detected (perhaps crash or timeout).</span><br><span class="line"></span><br><span class="line">[+] Narrowed down to 65 files, saved <span class="keyword">in</span> <span class="string">&#x27;output_cmin&#x27;</span>.</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="样本复杂度-AFL-TMIN-减小单个输入文件的大小"><a href="#样本复杂度-AFL-TMIN-减小单个输入文件的大小" class="headerlink" title="样本复杂度  AFL-TMIN    减小单个输入文件的大小"></a>样本复杂度  AFL-TMIN    减小单个输入文件的大小</h3><p>&emsp;&emsp;基于字长+步长的形式，逐字节删除，然后通过插装反馈得出样本改变是否导致了程序运行路径发生了变化。若没有发生变化，可以认为删去的字节是冗余的，只用于一个指定的文件。为了使每一个test case达到表示与原始测试用例相同的代码路径所需的最小值，afl-tmin遍历test case的实际字节，逐步删除很小的数据块，直到删除任意字节都会影响到代码路径表示。</p>
+<p>tmin操作的是单个文件，输出单个文件；</p>
+<p>对于有效地fuzzing来说，这都是很重要的步骤，也是需要理解的重要概念</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># instrumented mode(默认)</span></span><br><span class="line">afl-tmin -i input_file -o output_file -- /path/to/program [params] @@ </span><br><span class="line"><span class="comment"># crash mode  -x 直接把非返回0的导致程序非正常退出的都作为crash。</span></span><br><span class="line">afl-tmin -x -i input_file -o output_file -- /path/to/program [params] @@</span><br><span class="line">afl-tmin -x -i output_cmin -o output_tmain -- ./magick convert @@ xx.png</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># afl-tmin 接受单个文件输入，如果语料库中文件数量特别多</span></span><br><span class="line">mkdir -p tmin_output_cmin</span><br><span class="line"><span class="comment">#速度太慢</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> output_cmin/*; <span class="keyword">do</span> afl-tmin -i <span class="variable">$i</span> -o ./tmin_<span class="variable">$i</span> -- ./magick convert @@ xx2.png; <span class="keyword">done</span>;</span><br><span class="line"><span class="comment">#建议使用下面的大佬的并发bash脚本</span></span><br><span class="line">screen ~/afl-src/afl-ptmin 8 ./queue_cmin ./output_tmin/ <span class="string">&quot;./magick convert @@ xx3.png&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#0字节文件考虑：加 -m none</span></span><br><span class="line">[!] WARNING: Down to zero bytes - check the <span class="built_in">command</span> line and mem <span class="built_in">limit</span>!</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="5，Usage"><a href="#5，Usage" class="headerlink" title="5，Usage:"></a>5，Usage:</h2><h3 id="fuzz"><a href="#fuzz" class="headerlink" title="fuzz"></a>fuzz</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">下载fuzz样本集</span></span><br><span class="line">git clone https://github.com/MozillaSecurity/fuzzdata.git ~/fuzz/fuzzdata</span><br><span class="line"><span class="meta">#</span><span class="bash">@@就是拿来代替-i目录的文件路径，相当于以命令行参数方式输入magick。</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-t 防止大型程序执行过慢，被放到 total hangs【无响应】</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-m 内存大小</span></span><br><span class="line"><span class="meta">#</span><span class="bash">/dev/null 不要输出文件</span></span><br><span class="line">afl-fuzz  -t 300000 -m none -i ~/fuzz/fuzzdata/fuzzdata/samples/png -o output -- ./magick convert @@ /dev/null</span><br><span class="line"><span class="meta">#</span><span class="bash">没插桩就加上-q, 使用qemu</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="白盒"><a href="#白盒" class="headerlink" title="白盒"></a>白盒</h3><p>执行一个单例， 测试程序的插桩</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">afl-showmap -m none -o ./output.tuples -- ./magick convert ./jj.png cjj,jpg</span><br><span class="line"></span><br><span class="line">*] Executing <span class="string">&#x27;./magick&#x27;</span>...</span><br><span class="line"></span><br><span class="line">-- Program output begins --</span><br><span class="line">-- Program output ends --</span><br><span class="line">[+] Captured 3848 tuples <span class="keyword">in</span> <span class="string">&#x27;./output.tuples&#x27;</span>.</span><br><span class="line"></span><br><span class="line">执行程序打印捕获的元组（tuples），衡量衡量程序覆盖情况（分支信息）</span><br></pre></td></tr></table></figure>
+
+<h3 id="黑盒"><a href="#黑盒" class="headerlink" title="黑盒"></a>黑盒</h3><p>就是使用QEMU模式，加上-Q</p>
+<h2 id="6，加速-SCREEN"><a href="#6，加速-SCREEN" class="headerlink" title="6，加速 SCREEN"></a>6，加速 SCREEN</h2><p>还可以这样.  转自【参考4】</p>
+<p><img src="/2020/04/10/afl-fuzz/image-20200413024247769.png" alt="image-20200413024247769"></p>
+<h3 id="多进程"><a href="#多进程" class="headerlink" title="多进程"></a>多进程</h3><p>-M 参数指定一个主Fuzzer(<code>Master Fuzzer</code>)<br>-S 参数指定多个从Fuzzer(<code>Slave Fuzzer</code>)</p>
+<p><code>Master Fuzzer</code>进行确定性测试（deterministic ）即对输入文件进行一些特殊而非随机的的变异；<br><code>Slave Fuzzer</code>  进行完全随机的变异。</p>
+<p>我试了下，3000ms已经足够了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ screen afl-fuzz -m none -t 3000 -i ./output_tmin -o sync_dir/ -M master -- ./magick convert @@ xx3.png</span><br><span class="line">$ screen afl-fuzz -m none -t 3000 -i ./output_tmin -o sync_dir/ -S slave1 -- ./magick convert @@ xx3.png</span><br><span class="line">$ screen afl-fuzz -m none -t 3000 -i ./output_tmin -o sync_dir/ -S slave2 -- ./magick convert @@ xx3.png</span><br><span class="line">$ screen afl-fuzz -m none -t 3000 -i ./output_tmin -o sync_dir/ -S slave3 -- ./magick convert @@ xx3.png</span><br><span class="line">  ...</span><br><span class="line">分别ctrl+a+d 挂起状态,放入后台</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">查看所有会话</span></span><br><span class="line">screen -ls</span><br><span class="line"><span class="meta">#</span><span class="bash">进入会话</span></span><br><span class="line">screen -r session_name</span><br><span class="line"><span class="meta">#</span><span class="bash">进入会话</span></span><br><span class="line">screen -x session_name</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="built_in">kill</span></span></span><br><span class="line">screen -X -S 28006 quit</span><br><span class="line">tmux      # starts a new tmux session</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">在Session下，使用ctrl+a(C-a) </span><br><span class="line">ctrl-b c  # new tab</span><br><span class="line">ctrl-b 0  # switch to tab 0</span><br><span class="line">ctrl-b d  # detach</span><br><span class="line">tmux a    # re-attach to your previous session</span><br><span class="line">ctrl-b ?  # for help</span><br></pre></td></tr></table></figure>
+
+<p>这并不是一个很理想的解决方案，</p>
+<p>&emsp;&emsp;因为这样的条件下，运行前期master fuzzer的deterministic进程太慢，而slave随机产生新的样本后，master进程的deterministic变异进程总是来不及处理；而各slave进程重复概率大，需要的同步开销过大，导致afl-fuzz的处理速度并不是线性增长。</p>
+<p>&emsp;&emsp;将会在sync_dir文件夹建立master、slave1、slave2三个文件夹，三个 fuzzer各使用一个CPU。在fuzz过程中，各 fuzzer在空闲时可以读取其他文件夹中的新文件，然后对自己的queue文件进行同步和更新。</p>
+<p><strong><code>afl-whatsup</code>  工具可以查看每个fuzzer的运行状态和总体运行概况，加上-s选项只显示概况，其中的数据都是所有fuzzer的总和。</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-whatsup sync_dir</span><br></pre></td></tr></table></figure>
+
+<p><code>afl-gotcpu</code>工具可以查看每个核心使用状态。</p>
+<img src="/2020/04/10/afl-fuzz/afl_multi.jpg" alt="AFL" style="zoom: 48%;">
+
+<p>【参考1】cp“ 可以看到这里的<code>-o</code>指定的是一个同步目录，并行测试中所有的Fuzzer将相互协作，在找到新的代码路径时，相互传递新的测试用例，如下图中以Fuzzer0的角度来看，它查看其它fuzzer的语料库，并通过比较id来同步感兴趣的测试用例。</p>
+<h3 id="多系统"><a href="#多系统" class="headerlink" title="多系统"></a>多系统</h3><p>没有多系统先8学了</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/mirrorer/afl/blob/master/docs/parallel_fuzzing.txt">官方详解</a></p>
+<p>大佬方案请看【参考1】最后</p>
+<h2 id="7，-When-to-stop-and-prune"><a href="#7，-When-to-stop-and-prune" class="headerlink" title="7，!!! When to stop and prune  !!!"></a>7，!!! When to stop and prune  !!!</h2><p><img src="/2020/04/10/afl-fuzz/status.png" alt="image-20200412161130767"></p>
+<p>&emsp;&emsp;<em>cycles done</em> 随着周期数不断增大，其颜色也会由洋红色，逐步变为黄色、蓝色、绿色。当其变为绿色时，继续Fuzzing下去也很难有新的发现了。如上所示，fuzz程序发生异常，但是这个crash无论如何都不能触发漏洞，fuzz为什么会把它放过来？</p>
+<p>&emsp;&emsp;一旦master fuzzer完成了它的第一个周期，我们可以继续并停止我们的afl-fuzz实例。我们需要合并和最小化每个实例的队列queue，并重新启动fuzzing。当使用多个fuzzing实例运行时，AFL将在根目录的syncdir目录里，根据传给afl-fuzz的参数（<strong>fuzzer的名称</strong>），为每个fuzzer维护一个独立的、同步目录。每个单独的fuzzer syncdir目录都包含一个队列queue目录，其中包含AFL能够生成的所有导致新的代码路径被检测出来的测试用例。</p>
+<p>   我们需要合并每个fuzz实例的队列目录，但是因为其中会有很多重叠，我们应该尽量最小化这个新的语料库。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ls sync_dir</span><br><span class="line">master slave1 slave2</span><br><span class="line">mkdir queue_all</span><br><span class="line">cp sync_dir/slave*/queue/* queue_all</span><br><span class="line">cp sync_dir/master/queue/* queue_all</span><br><span class="line">afl-cmin -m none -t 3000 -i queue_all -o queue_cmin_all -- ../magick convert @@ xx3.png</span><br></pre></td></tr></table></figure>
+
+<p>&emsp;&emsp;一旦我们通过afl-cmin运行生成的队列，我们需要最小化每个结果文件，以使我们不在我们不需要的字节上浪费CPU周期。<br>&emsp;&emsp;贴一个大佬写的写的小bash脚本，称为<code>afl-ptmin</code>，它将<code>afl-tmin</code>并行化到一定数量的进程中，并证明在最小化过程中显著地提升了速度。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">cores=<span class="variable">$1</span></span><br><span class="line">inputdir=<span class="variable">$2</span></span><br><span class="line">outputdir=<span class="variable">$3</span></span><br><span class="line">pids=<span class="string">&quot;&quot;</span></span><br><span class="line">total=`ls <span class="variable">$inputdir</span> | wc -l`</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> `seq 1 <span class="variable">$cores</span> <span class="variable">$total</span>`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  <span class="keyword">for</span> i <span class="keyword">in</span> `seq 0 $(expr <span class="variable">$cores</span> - 1)`</span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">    file=`ls -Sr <span class="variable">$inputdir</span> | sed $(expr <span class="variable">$i</span> + <span class="variable">$k</span>)<span class="string">&quot;q;d&quot;</span>`</span><br><span class="line">    <span class="built_in">echo</span> <span class="variable">$file</span></span><br><span class="line">    afl-tmin -m none -t 3000 -i <span class="variable">$inputdir</span>/<span class="variable">$file</span> -o <span class="variable">$outputdir</span>/<span class="variable">$file</span> -- <span class="variable">$4</span> &amp;</span><br><span class="line">  <span class="keyword">done</span></span><br><span class="line">  <span class="built_in">wait</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">chmod +x ~/afl-src/afl-ptmin </span><br><span class="line">mkdir -m 777 queue</span><br><span class="line">screen ~/afl-src/afl-ptmin 8 ./queue_cmin_all ./queue/ <span class="string">&quot;./magick convert @@ xx3.png&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>&emsp;&emsp;即使有并行化，这个过程仍然需要一段时间。完成后，从<code>sync_dirs</code>目录中各个<code>fuzzer</code>目录下删除以前的队列<code>queue</code>目录<strong>（/syncdirs/fuzzer1/queue/）</strong> ，然后复制**/sync_dirs/queue/**文件夹以替换旧的队列文件夹。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rm -rf sync_dir/master/queue </span><br><span class="line">rm -rf sync_dir/slave1/queue </span><br><span class="line">rm -rf sync_dir/slave2/queue </span><br><span class="line">cp -r queue/ sync_dir/master/queue </span><br><span class="line">cp -r queue/ sync_dir/slave1/queue </span><br><span class="line">cp -r queue/ sync_dir/slave2/queue</span><br></pre></td></tr></table></figure>
+
+<p>   使用最新的最小化队列queue，我们可以在之前离开的地方继续fuzzing。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">screen afl-fuzz -m none -t 3000 -i- -o sync_dir/ -M master -- magick convert @@ xx1.png</span><br><span class="line">screen afl-fuzz -m none -t 3000 -i- -o sync_dir/ -S slave1 -- magick convert @@ xx2.png</span><br><span class="line">screen afl-fuzz -m none -t 3000 -i- -o sync_dir/ -S slave2 -- magick convert @@ xx3.png</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>   一个 -i- ,  这告诉AFL只使用syncdir中的queue/目录作为该fuzzer的种子目录，然后从那里重新启动。</p>
+<h2 id><a href="#" class="headerlink" title></a></h2><h2 id="8，crashesdump-处理测试结果"><a href="#8，crashesdump-处理测试结果" class="headerlink" title="8，crashesdump 处理测试结果"></a>8，crashesdump 处理测试结果</h2><p>分类</p>
+<h4 id="1-crash-exploration-mode-变异"><a href="#1-crash-exploration-mode-变异" class="headerlink" title="1. crash exploration mode 变异"></a>1. crash exploration mode 变异</h4><p>可以快速地产生很多和输入crash相关、但稍有些不同的crashes，从而判断漏洞是否足以利用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-fuzz -m none -C -i poc -o peruvian-were-rabbit_out -- ~/src/LuPng/a.out @@ out.png</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-triage-crashes-信号量判断"><a href="#2-triage-crashes-信号量判断" class="headerlink" title="2.triage_crashes 信号量判断"></a>2.triage_crashes 信号量判断</h4><p>11代表了SIGSEGV信号，有可能是因为缓冲区溢出导致进程引用了无效的内存；<br>06代表了SIGABRT信号，可能是执行了abort\assert函数或double free导致;<br>….后面再收集</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/afl-src/experimental/crash_triage/triage_crashes.sh fuzz_out program @@ 2&gt;&amp;1 | grep SIGNAL</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3：crashwalk"><a href="#3：crashwalk" class="headerlink" title="3：crashwalk "></a>3：<a target="_blank" rel="noopener" href="https://github.com/bnagy/crashwalk">crashwalk </a></h4><p>#build</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apt-get install gdb</span><br><span class="line">mkdir ~/tools &amp;&amp; mkdir ~/tools/go</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/jfoote/exploitable.git ~/tools/</span><br><span class="line"><span class="built_in">export</span> GOPATH=<span class="string">&quot;~/tools/go&quot;</span> &amp;&amp; <span class="built_in">export</span> CW_EXPLOITABLE=<span class="string">&quot;~/tools/exploitable/exploitable/exploitable.py&quot;</span></span><br><span class="line">go get -u github.com/bnagy/crashwalk/cmd/...</span><br></pre></td></tr></table></figure>
+
+<p>#use<br>crashwalk支持AFL/Manual两种模式。</p>
+<p>#Manual Mode  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/tools/go/bin/cwtriage -root syncdir/master/crashes/ -match id -~/program @@</span><br></pre></td></tr></table></figure>
+
+<p>#AFL Mode   读取<strong>crashes/README.txt</strong>文件获得目标的执行命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/tools/go/bin/cwtriage -root syncdir -afl</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4：afl-collect"><a href="#4：afl-collect" class="headerlink" title="4：afl-collect"></a>4：afl-collect</h4><p>项目地址: <a target="_blank" rel="noopener" href="https://github.com/rc0r/afl-utils">https://github.com/rc0r/afl-utils</a></p>
+<p>它是<em>afl-utils</em>套件中的一个工具，同样也是基于exploitable来检查crashes的可利用性。<br>它可以自动删除无效的crash样本、删除重复样本以及自动化样本分类</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/rc0r/afl-utils</span><br><span class="line">cd afl-utils</span><br><span class="line">python3 setup.py install</span><br><span class="line"></span><br><span class="line">看输出提示，注意设置</span><br><span class="line">echo &quot;source /usr/lib/python3.5/site-packages/exploitable-1.32_rcor-py3.5.egg/exploitable/exploitable.py&quot; &gt;&gt; ~/.gdbinit</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-collect -j 8 -d crashes.db -e gdb_script ./sync_dir ./collection_dir --  /path/to/target --target-opts</span><br></pre></td></tr></table></figure>
+
+<p>还有其他很多功能多留意，后面我再来补充</p>
+<p><code>afl-collect</code><br><code>afl-cron</code><br><code>afl-minimize </code><br><code>afl-multicore </code><br><code>afl-multikill</code><br><code>afl-stats</code><br><code>afl-sync</code><br><code>afl-vcrash </code></p>
+<h4 id="5：手动看异常-AddressSanitizer-ASAN"><a href="#5：手动看异常-AddressSanitizer-ASAN" class="headerlink" title="5：手动看异常  (AddressSanitizer )(ASAN)"></a>5：手动看异常  (AddressSanitizer )(ASAN)</h4><p>我们上面编译测试程序编译就开了ASAN，可以很好的分析展示出错误</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">./magick convert crash/xxxxxxx output</span><br><span class="line"></span><br><span class="line">ERROR: AddressSanitizer:  [内存漏洞分析]</span><br><span class="line">--buffer-overflow  [stack and heap]</span><br><span class="line">--SEGV [Null point reference]</span><br><span class="line">ERROR: LeakSanitizer:  [内存泄漏分析]</span><br><span class="line">--Direct leak</span><br><span class="line">--Indirect leak</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="9，code-coverage-代码覆盖率"><a href="#9，code-coverage-代码覆盖率" class="headerlink" title="9，code coverage 代码覆盖率"></a>9，code coverage 代码覆盖率</h2><p>&emsp;&emsp;由于不能量化在二进制文件中执行可用的代码路径的程度，你会丢失很多信息。通过确定你没有到达代码库的哪些部分，你可以更好地调整你的测试用例种子，以便于达到更高的测试完整度。</p>
+<ul>
+<li>​    工具之一是<strong>GCOV</strong>，它随gcc一起发布，所以不需要再单独安装，和afl-gcc插桩编译的原理一样，gcc编译时生成插桩的程序，用于在执行时生成代码覆盖率信息。</li>
+<li>​    另外一个工具是<strong>LCOV</strong>，它是GCOV的图形前端，可以收集多个源文件的gcov数据，并创建包含使用覆盖率信息注释的源代码HTML页面。</li>
+<li>​    最后一个工具是<a target="_blank" rel="noopener" href="https://github.com/mrash/afl-cov">afl-cov</a>，也是一个python脚本，可以快速帮助我们调用前面两个工具处理来自afl-fuzz测试用例的代码覆盖率结果。</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install lcov</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git <span class="built_in">clone</span> https://github.com/mrash/afl-cov.git ~/afl-cov</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ~/afl-cov/afl-cov -V</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>一，CFLAGS中添加<code>&quot;-fprofile-arcs&quot;</code>和<code>&quot;-ftest-coverage&quot;</code>选项，<br><code>--prefix</code>指定一个新的目录。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/xxx/build/ </span><br><span class="line">make clean</span><br><span class="line">./configure --prefix=./build-cov CC=<span class="string">&quot;clang&quot;</span> CXX=<span class="string">&quot;clang++&quot;</span> CFLAGS=<span class="string">&quot;-fprofile-arcs -ftest-coverage -g -fsanitize=address&quot;</span> --disable-shared</span><br><span class="line">AFL_USE_ASAN=1 make</span><br><span class="line"></span><br><span class="line"><span class="comment">#上面加了-fprofile-arcs -ftest-coverage参数了，所以不需要</span></span><br></pre></td></tr></table></figure>
+
+<p>二，有了新程序，afl-cov可以将在给定输入的二进制程序中采用的代码路径与文件系统上的代码库链接起来。执行afl-cov。当afl-fuzz停止时，afl-cov将退出</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">AFL_FILE和afl中的”@@”类似</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-d选项指定afl-fuzz输出目录；</span></span><br><span class="line"><span class="meta">#</span><span class="bash">—live用于处理一个还在实时更新的AFL目录</span></span><br><span class="line"><span class="meta">#</span><span class="bash">LD_LIBRARY_PATH 指定程序的库文件搜索路径</span></span><br><span class="line"><span class="meta">#</span><span class="bash">–enable-branch-coverage用于开启边缘覆盖率（分支覆盖率）统计</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-c用于指定源码目录；</span></span><br><span class="line"><span class="meta">#</span><span class="bash">-e选项用来设置要执行的程序和参数</span></span><br><span class="line"></span><br><span class="line">screen ~/afl-cov/afl-cov -d ~/sync_dir/ --live --coverage-cmd --code-dir program/ -e &quot;magick convert AFL_FILE /dev/null&quot; </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">需要链接库时</span></span><br><span class="line">screen ~/afl-cov/afl-cov -d ~/sync_dir --live --enable-branch-coverage -c . -e &quot;cat AFL_FILE | LD_LIBRARY_PATH=./build-cov/lib magick convert AFL_FILE /dev/null&quot;</span><br></pre></td></tr></table></figure>
+
+<p>&emsp;&emsp;完成后，afl-cov在sync_dir目录下的名为cov的目录中生成报告信息。 其中包括可以在Web浏览器中轻松查看的HTML文件，详细说明命中了哪些函数和哪行代码，以及未命中的函数和代码行。</p>
+<p>当然使用afl去fuzz chrome, 如v8引擎的js编译基本可以放弃了，因为就简单的关键字function ，那要产生多少err才能通过啊。几乎不太可能去生成有效的js语法，会卡在语法parser那里。</p>
+<h2 id="参考-amp-推荐："><a href="#参考-amp-推荐：" class="headerlink" title="参考&amp;推荐："></a>参考&amp;推荐：</h2><ol>
+<li><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/191536.html">AFL漏洞挖掘技术漫谈（一）：用AFL开始你的第一次Fuzzing</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/lcatro/Fuzzing-ImageMagick/blob/master/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Fuzzing%E6%8C%96%E6%8E%98ImageMagick%E7%9A%84%E6%BC%8F%E6%B4%9E.md">Fuzzing-ImageMagick</a> （魔鬼！不到2天光爆破一个程序就十几个cve !）</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://foxglovesecurity.com/2016/03/15/fuzzing-workflows-a-fuzz-job-from-start-to-finish/">fuzz</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dwfault.github.io/2019/12/20/afl-fuzz%E6%9A%B4%E5%8A%9B%E6%95%88%E7%8E%87%E6%B5%81%E5%AE%9E%E8%B7%B5/">AFL-FUZZ暴力效率流实践</a> 大佬对fuzz进行了改造，值得深究嗷</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://releases.llvm.org/4.0.1/tools/clang/SanitizerCoverage.html#sancov-tool">SanitizerCoverage</a> clang的官方文档，讲了本节很多要了解的编译参数</p>
+</li>
+</ol>
+<p><em>这些项目必学一下，afl官方停止更新了</em></p>
+<p>winafl、afl-go、WinAFL、afl-cov、kafl、android-afl</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/google/AFL/blob/master/docs/sister_projects.txt">afl衍生品</a></p>
+<h2 id="下面计划学习libFuzzer"><a href="#下面计划学习libFuzzer" class="headerlink" title="下面计划学习libFuzzer"></a>下面计划学习libFuzzer</h2>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/FUZZ/" rel="tag"># FUZZ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/04/11/libfuzz/" rel="prev" title="libfuzz">
+                libfuzz <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/notify-bibi" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:qq2496424084@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://driverxdw.github.io/" title="driverxdwのblog" target="_blank">driverxdwのblog</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fuzz-%E7%9A%84%E7%A7%8D%E7%B1%BB"><span class="nav-number">2.</span> <span class="nav-text">fuzz 的种类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AFL"><span class="nav-number">3.</span> <span class="nav-text">AFL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%EF%BC%8CBuild"><span class="nav-number">3.1.</span> <span class="nav-text">1，Build:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%EF%BC%8CBuild-test-target"><span class="nav-number">3.2.</span> <span class="nav-text">2，Build test target</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%EF%BC%8C%E5%BC%80%E6%BA%90%E8%AF%AD%E6%96%99%E5%BA%93%EF%BC%88%E5%BD%B1%E5%93%8D%E5%BE%88%E5%A4%A7%EF%BC%89"><span class="nav-number">3.3.</span> <span class="nav-text">3，开源语料库（影响很大）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%EF%BC%8CExtract"><span class="nav-number">3.4.</span> <span class="nav-text">4，Extract</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B7%E6%9C%AC%E5%A4%9A%E6%A0%B7%E6%80%A7-AFL-CMIN-%E7%A7%BB%E9%99%A4%E6%89%A7%E8%A1%8C%E7%9B%B8%E5%90%8C%E4%BB%A3%E7%A0%81%E7%9A%84%E8%BE%93%E5%85%A5%E6%96%87%E4%BB%B6"><span class="nav-number">3.4.1.</span> <span class="nav-text">样本多样性   AFL-CMIN   移除执行相同代码的输入文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B7%E6%9C%AC%E5%A4%8D%E6%9D%82%E5%BA%A6-AFL-TMIN-%E5%87%8F%E5%B0%8F%E5%8D%95%E4%B8%AA%E8%BE%93%E5%85%A5%E6%96%87%E4%BB%B6%E7%9A%84%E5%A4%A7%E5%B0%8F"><span class="nav-number">3.4.2.</span> <span class="nav-text">样本复杂度  AFL-TMIN    减小单个输入文件的大小</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%EF%BC%8CUsage"><span class="nav-number">3.5.</span> <span class="nav-text">5，Usage:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fuzz"><span class="nav-number">3.5.1.</span> <span class="nav-text">fuzz</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%99%BD%E7%9B%92"><span class="nav-number">3.5.2.</span> <span class="nav-text">白盒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%BB%91%E7%9B%92"><span class="nav-number">3.5.3.</span> <span class="nav-text">黑盒</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6%EF%BC%8C%E5%8A%A0%E9%80%9F-SCREEN"><span class="nav-number">3.6.</span> <span class="nav-text">6，加速 SCREEN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B"><span class="nav-number">3.6.1.</span> <span class="nav-text">多进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%B3%BB%E7%BB%9F"><span class="nav-number">3.6.2.</span> <span class="nav-text">多系统</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7%EF%BC%8C-When-to-stop-and-prune"><span class="nav-number">3.7.</span> <span class="nav-text">7，!!! When to stop and prune  !!!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">3.8.</span> <span class="nav-text"></span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8%EF%BC%8Ccrashesdump-%E5%A4%84%E7%90%86%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.9.</span> <span class="nav-text">8，crashesdump 处理测试结果</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-crash-exploration-mode-%E5%8F%98%E5%BC%82"><span class="nav-number">3.9.0.1.</span> <span class="nav-text">1. crash exploration mode 变异</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-triage-crashes-%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%88%A4%E6%96%AD"><span class="nav-number">3.9.0.2.</span> <span class="nav-text">2.triage_crashes 信号量判断</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%EF%BC%9Acrashwalk"><span class="nav-number">3.9.0.3.</span> <span class="nav-text">3：crashwalk </span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%EF%BC%9Aafl-collect"><span class="nav-number">3.9.0.4.</span> <span class="nav-text">4：afl-collect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5%EF%BC%9A%E6%89%8B%E5%8A%A8%E7%9C%8B%E5%BC%82%E5%B8%B8-AddressSanitizer-ASAN"><span class="nav-number">3.9.0.5.</span> <span class="nav-text">5：手动看异常  (AddressSanitizer )(ASAN)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9%EF%BC%8Ccode-coverage-%E4%BB%A3%E7%A0%81%E8%A6%86%E7%9B%96%E7%8E%87"><span class="nav-number">3.10.</span> <span class="nav-text">9，code coverage 代码覆盖率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83-amp-%E6%8E%A8%E8%8D%90%EF%BC%9A"><span class="nav-number">3.11.</span> <span class="nav-text">参考&amp;推荐：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E9%9D%A2%E8%AE%A1%E5%88%92%E5%AD%A6%E4%B9%A0libFuzzer"><span class="nav-number">3.12.</span> <span class="nav-text">下面计划学习libFuzzer</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">notify</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

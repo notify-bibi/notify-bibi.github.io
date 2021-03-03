@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zn">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="source code-review," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="开始​    C&#x2F;C++语言的语法拥有其它语言所没有的灵活性，这种灵活性带来了代码效 率的提升，但相应也使得代码编写具有很大的随意性，另外 C&#x2F;C++编译器不进 行强制类型检查，也不做任何边界检查，这就增加了代码中存在隐患的可能性。 如果能够在代码提交测试之前发现这些潜在的错误，就能够极大地减轻测试人员 的压力，减少软件项目的除错成本，可是传统的 C&#x2F;C++编译器对此已经无能为力，这个任务只能由专">
+<meta property="og:type" content="article">
+<meta property="og:title" content="源码审计工具调研">
+<meta property="og:url" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:site_name" content="notifyのblog">
+<meta property="og:description" content="开始​    C&#x2F;C++语言的语法拥有其它语言所没有的灵活性，这种灵活性带来了代码效 率的提升，但相应也使得代码编写具有很大的随意性，另外 C&#x2F;C++编译器不进 行强制类型检查，也不做任何边界检查，这就增加了代码中存在隐患的可能性。 如果能够在代码提交测试之前发现这些潜在的错误，就能够极大地减轻测试人员 的压力，减少软件项目的除错成本，可是传统的 C&#x2F;C++编译器对此已经无能为力，这个任务只能由专">
+<meta property="og:locale">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200914233000688-0236398.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915131408641.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915150904327.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915190052759.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171309584.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171600312.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910172815718.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171901007.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171942696.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910172341892.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910174644153.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910173408953.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910195410865.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911150915054.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911113248265.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911165935460.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911171202562.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/85e6c9d6-2c9d-3f89-8989-0e41acfa02df.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/2171904d-6461-3a11-9ef9-e244db0bb9d3.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/618d2e61-d258-311a-8f36-2a65e335deb8.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/bbb43acb-8440-36c1-af52-58809ae50842.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/5df84a06-5efd-3ab6-a3db-3573e05e1372.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/2525de25-af24-341a-94cc-3e5e84abba9f.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/605a436e-b2a2-3b3e-8862-d783b4f8f5f5.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/79275885-4b61-37cd-8889-f2a2f48cf8bb.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/1be52be6-4364-3f48-9124-3fb81a4ad613.png">
+<meta property="article:published_time" content="2021-03-01T14:55:09.000Z">
+<meta property="article:modified_time" content="2021-03-02T14:27:06.477Z">
+<meta property="article:author" content="notify">
+<meta property="article:tag" content="source code-review">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200914233000688-0236398.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notify-bibi.github.io/2021/03/01/代码审计工具/"/>
+
+
+
+
+
+  <title>源码审计工具调研 | notifyのblog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zn">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">notifyのblog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notify-bibi.github.io/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="notifyのblog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">源码审计工具调研</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-01T22:55:09+08:00">
+                2021-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/source-code-review/" itemprop="url" rel="index">
+                    <span itemprop="name">source code-review</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开始"><a href="#开始" class="headerlink" title="开始"></a>开始</h1><p>​    C/C++语言的语法拥有其它语言所没有的灵活性，这种灵活性带来了代码效 率的提升，但相应也使得代码编写具有很大的随意性，另外 C/C++编译器不进 行强制类型检查，也不做任何边界检查，这就增加了代码中存在隐患的可能性。 如果能够在代码提交测试之前发现这些潜在的错误，就能够极大地减轻测试人员 的压力，减少软件项目的除错成本，可是传统的 C/C++编译器对此已经无能为力，这个任务只能由专用的代码检查工具完成。</p>
+<p>​    </p>
+<h1 id="llvm-amp-clang"><a href="#llvm-amp-clang" class="headerlink" title="llvm &amp; clang"></a>llvm &amp; clang</h1><ul>
+<li>LLVM 是个很大很大的项目群，几乎把从编译到调试的各个构建环节都重新实现了一遍，目的：一是尽可能地模块化现有代码以方便在此基础上进行二次开发、一是提供比传统构建工具链更好的用户体验。clang是LLVM的子项目，是一款非常优秀的C++ 编译器，前端 clang + 后端 LLVM（后简称 LLVM/clang）就是一款可替代 GCC 的优秀编译</li>
+<li>GCC 配套的标准库涉及 libstdc++ 和 libsupc++ 两个子库，前者是接口层（即，上层的封装），后者是实现层（即，底层的具体实现），对应到clang，则libc++（接口层）和 libc++abi（实现层）</li>
+</ul>
+<p>-&gt;IR-&gt;x86,arm,ppc,mips,amd64</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>:</span><br><span class="line"><span class="number">2</span>: <span class="function"><span class="keyword">char</span> *<span class="title">test</span><span class="params">( <span class="keyword">int</span> m, <span class="keyword">int</span> n, <span class="keyword">char</span> *p )</span></span></span><br><span class="line">3：&#123;</span><br><span class="line"><span class="number">4</span>： <span class="keyword">int</span> result;</span><br><span class="line"><span class="number">5</span>： <span class="keyword">char</span> *temp;</span><br><span class="line"><span class="number">6</span>： <span class="keyword">long</span> nm;</span><br><span class="line"><span class="number">7</span>： <span class="keyword">int</span> i, k, kk;</span><br><span class="line"><span class="number">8</span>： <span class="keyword">char</span> name[<span class="number">11</span>] = <span class="string">&quot;Joe Jakeson&quot;</span>;</span><br><span class="line"><span class="number">9</span>：</span><br><span class="line"><span class="number">10</span>： nm = n * m;</span><br><span class="line"><span class="number">11</span>： temp = p == <span class="string">&quot;&quot;</span> ? <span class="string">&quot;null&quot;</span> : p;</span><br><span class="line"><span class="number">12</span>： <span class="keyword">for</span>( i = <span class="number">0</span>; i &lt; m; I++ ) &#123;</span><br><span class="line"><span class="number">14</span>： 	k++;</span><br><span class="line"><span class="number">15</span>： 	kk = i;</span><br><span class="line"><span class="number">16</span>： &#125;</span><br><span class="line"><span class="number">17</span>：</span><br><span class="line"><span class="number">18</span>： <span class="keyword">if</span>( k== <span class="number">1</span> ) </span><br><span class="line">  			result = nm;</span><br><span class="line"><span class="number">19</span>： <span class="keyword">else</span> <span class="keyword">if</span>( kk &gt; <span class="number">0</span> ) </span><br><span class="line">  			result = <span class="number">1</span>;</span><br><span class="line"><span class="number">20</span>： <span class="keyword">else</span> <span class="keyword">if</span>( kk &lt; <span class="number">0</span> ) </span><br><span class="line">  			result = <span class="number">-1</span>;</span><br><span class="line"><span class="number">21</span>：</span><br><span class="line"><span class="number">22</span>： <span class="keyword">if</span> (m == result) </span><br><span class="line">  			<span class="keyword">return</span> temp;</span><br><span class="line"><span class="number">23</span>： <span class="keyword">else</span> </span><br><span class="line">  			<span class="keyword">return</span> name;</span><br><span class="line"><span class="number">24</span>：&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>第   8 行向 name 数组赋值时丢掉了结尾的 nul 字符</li>
+<li>第 10 行的乘法精度会失准，即使考虑到 long 比 int 的字长更长，由 于符号位的原因仍然会造成精度失准</li>
+<li>第 11 行的比较有问题</li>
+<li>第 14 行的变量 k 没有初始化</li>
+<li>第 15 行的 kk 可能没有被初始化</li>
+<li>第 22 行的 result 也有可能 没有被初始化</li>
+<li>第 23 行返回的是一个局部对象的地址。</li>
+</ul>
+<h1 id="TscanCode"><a href="#TscanCode" class="headerlink" title="TscanCode"></a>TscanCode</h1><h2 id="Description"><a href="#Description" class="headerlink" title="Description:"></a>Description:</h2><ul>
+<li>TscanCode是鹅厂<strong>静态分析</strong>团队开发的一款开源免费的C/C++静态分析工具。</li>
+<li>扫描C/C++代码不需要进行编译， 操作简单。</li>
+<li>速度快，平均扫描速度10W行/分钟。误报较多</li>
+<li>项目不再维护</li>
+<li>结果以图形化或者xml显示</li>
+</ul>
+<h2 id="Download-："><a href="#Download-：" class="headerlink" title="Download ："></a>Download ：</h2><p><a target="_blank" rel="noopener" href="https://github.com/Tencent/TscanCode">github</a></p>
+<h2 id="测试集"><a href="#测试集" class="headerlink" title="测试集"></a>测试集</h2><p><a target="_blank" rel="noopener" href="https://github.com/Tencent/TscanCode/tree/master/samples/cpp">samples/cpp</a></p>
+<h2 id="Usage"><a href="#Usage" class="headerlink" title="Usage:"></a>Usage:</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./tscancode --xml func.cpp 2&gt;result.xml</span><br></pre></td></tr></table></figure>
+
+<h1 id="scan-build"><a href="#scan-build" class="headerlink" title="scan-build *****"></a>scan-build *****</h1><h2 id="description"><a href="#description" class="headerlink" title="description"></a>description</h2><ul>
+<li>scan-build 是一个命令行工具，它是一款<strong>静态分析</strong>器，是clang-tools的一款工具。</li>
+<li>需要编译项目，通过重写cc和cxx环境变量来改变你的编译环境，<code>scan-build</code>将编译器gcc设置为<code>analyze-cc</code>。<code>analyze-cc</code>作为一个<code>伪编译器</code>，转发命令行参数给<code>gcc</code>和<code>clang</code>来执行静态分析。不会分析没有参与编译的源码</li>
+<li>精准度非常之高。特别是逻辑上的漏洞很多都可以探查出来。</li>
+<li>项目构建完毕后，以html web页面显示代码缺陷报告</li>
+</ul>
+<p>当一个项目在构建中，源文件在编译时同时也被静态分析器有序的检查着。当构建完成时，结构将会作为一个web网页的形式呈现给使用者。</p>
+<h2 id="insall"><a href="#insall" class="headerlink" title="insall"></a>insall</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get install clang-8 clang-tools-8</span><br><span class="line">$ la /usr/bin/ | grep scan-build</span><br><span class="line">lrwxrwxrwx 1 root   root      42 Dec 10  2019 scan-build-8 -&gt; ../share/clang/scan-build-8/bin/scan-build</span><br><span class="line">lrwxrwxrwx 1 root   root      45 Dec 10  2019 scan-build-py-8 -&gt; ../share/clang/scan-build-py-8/bin/scan-build</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Usage-1"><a href="#Usage-1" class="headerlink" title="Usage"></a>Usage</h2><blockquote>
+<p>-h 显示scan-build的所有参数<br>-o html 报告文件的存放目录。默认将报告文件保存在/tmp目录里。<br>-k 增加一个继续运行的参数到具体的命令中<br>-v 冗余输出结果。可以选择2个或3个”-v”增加冗余度。<br>-V 当命令完成后，在浏览器中查看运行结果。</p>
+</blockquote>
+<p>automake项目</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scan-build .&#x2F;configure</span><br></pre></td></tr></table></figure>
+
+<p>Cmake</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir build &amp;&amp; cd build </span><br><span class="line">scan-build .&#x2F;cmake ..</span><br></pre></td></tr></table></figure>
+
+<p>Make</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scan-build --use-analyzer &#96;which clang&#96; make -j8</span><br></pre></td></tr></table></figure>
+
+
+
+<p>结果请到<code>/tmp/scan-build-xxxxxxxxxxxxxxx/failures</code> 查看。它是 html 的。</p>
+<p>比如capstone项目的编译展示    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https:&#x2F;&#x2F;github.com&#x2F;aquynh&#x2F;capstone.git &amp;&amp; cd capstone &amp;&amp; git checkout next </span><br><span class="line">mkdir build &amp;&amp; cd build </span><br><span class="line">scan-build-8 --use-analyzer &#96;which clang-8&#96; ..&#x2F;cmake.sh</span><br><span class="line"># 顺带安装下，后面课程需要用到</span><br><span class="line">cd bindings&#x2F;python</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200914233000688-0236398.png" alt="image-20200914233000688"></p>
+<h1 id="Cppcheck"><a href="#Cppcheck" class="headerlink" title="Cppcheck***"></a>Cppcheck***</h1><p><a target="_blank" rel="noopener" href="http://cppcheck.net/">官方网站</a></p>
+<h2 id="Description-1"><a href="#Description-1" class="headerlink" title="Description"></a>Description</h2><p>CppCheck是一个C/C++代码缺陷静态检查工具。不同于C/C++编译器及其它分析工具，CppCheck只检查编译器检查不出来的bug，不检查语法错误。所谓静态代码检查就是使用一个工具检查我们写的代码是否安全和健壮，是否有隐藏的问题。</p>
+<ul>
+<li>检出多，有效检出少</li>
+<li>无须编译配置项目</li>
+<li></li>
+</ul>
+<h2 id="Build"><a href="#Build" class="headerlink" title="Build"></a>Build</h2><ul>
+<li>安装windows包管理器 <a target="_blank" rel="noopener" href="https://chocolatey.org/">https://chocolatey.org/</a></li>
+<li><code>choco install cppcheck</code></li>
+</ul>
+<p>Debian:</p>
+<ul>
+<li><code>sudo apt-get install cppcheck</code></li>
+</ul>
+<h2 id="Usage-2"><a href="#Usage-2" class="headerlink" title="Usage"></a>Usage</h2><p>Visual stdio </p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915131408641.png" alt="image-20200915131408641"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cppcheck . -j 3 --enable&#x3D;all --xml 2&gt;result.xml</span><br></pre></td></tr></table></figure>
+
+<p>multi threads</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cppcheck -j 4 &lt;path&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Visual studio</p>
+<p>在整个解决方案上运行 cppcheck：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cppcheck --project&#x3D;&lt;proj&gt;.sln</span><br></pre></td></tr></table></figure>
+
+<p>在单个项目文件上运行 cppcheck：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cppcheck --project=&lt;proj&gt;.vcxproj</span><br></pre></td></tr></table></figure>
+
+<p>其他参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cppcheck --enable&#x3D;warning,performance &lt;path&gt;</span><br><span class="line"># warning,performance 启用警告和性能消息：</span><br><span class="line"># all    启用所有消息</span><br><span class="line"># style  可以启用警告、性能、可移植性和样式信息</span><br><span class="line"># information 启用信息消息</span><br></pre></td></tr></table></figure>
+
+<p>不确定消息： 默认情况下，如果确定，Cppcheck 只显示错误消息。如果使用 <code>--inconclusive</code>，当分析不确定时，也会写错误消息。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cppcheck --inconclusive &lt;path&gt;</span><br></pre></td></tr></table></figure>
+
+<p>输出格式：template</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cppcheck --template&#x3D;gcc gui&#x2F;test.cpp</span><br><span class="line"># vs, gcc 编译器输出风格</span><br><span class="line"># &quot;&#123;file&#125;,&#123;line&#125;,&#123;severity&#125;,&#123;id&#125;,&#123;message&#125;&quot; 自定义</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="PC-lint"><a href="#PC-lint" class="headerlink" title="PC-lint"></a>PC-lint</h1><p><a target="_blank" rel="noopener" href="https://gimpel.com/pclp.html">官网</a></p>
+<h2 id="Description-2"><a href="#Description-2" class="headerlink" title="Description"></a>Description</h2><ul>
+<li>PC-lint for C/C++是由Gimpel软件公司于1985年开发的代码静态分析工具</li>
+<li>它能有效地发现程序语法错误、潜在的错误隐患、不合理的编程习惯等。</li>
+<li>PC-lint是资格最老，最强力的代码检查工具</li>
+<li>收费软件, 有30天体验</li>
+<li>需要完整的项目环境，如头文件等，并且配置起来有一点点麻烦。</li>
+<li>PC-Lint 则偏重于代码的逻辑分析，它能够发现代码中潜在的错误，比如数组访 问越界、内存泄漏、使用未初始化变量等</li>
+</ul>
+<h2 id="Usage-3"><a href="#Usage-3" class="headerlink" title="Usage"></a>Usage</h2><p>PC-Lint能够检查出很多语法错误和语法上正确的逻辑错误，PC-Lint为大部分错误消息都分配了一个错误号，编号小于1000的错误号是分配给C语言的，编号大于1000的错误号则用来说明C++的错误消息。</p>
+<ol>
+<li>在doc/manual.pdf中给出了错误号</li>
+</ol>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915150904327.png" alt="image-20200915150904327"></p>
+<p>以C语言为例，其中的<br>编号 001-199 指的是一般编译器也会产生的语法错误；<br>编号 200-299 是PC-Lint程序内部的错误，这类错误不会出现在代码中的；<br>编号 300-399 指的是由于内存限制等导致的系统致命错误。<br>编号 400-999 中出现的提示信息，是根据隐藏代码问题的可能性进行分类的：<br>编号 400-699 指的是被检查代码中很可能存在问题而产生的告警信息；<br>编号 700-899 中出现的信息，产生错误的可能性相比告警信息来说级别要低，但仍然可能是因为代码问题导致的问题。<br>编号 900-999 是可选信息，他们不会被默认检查，除非你在选项中指定检查他们。</p>
+<ol start="2">
+<li>PC-Lint/FelexLint 提供了和许多编译器类似的告警级别设置选项 </li>
+</ol>
+<ul>
+<li>-wLevel，它的告警级别分为以下几个级别，缺省告警级别为 3 级： </li>
+<li>-w0 不产生信息（除了遇到致命的错误） </li>
+<li>-w1 只生成错误信息 – 没有告警信息和其它提示信息 </li>
+<li>-w2 只有错误和告警信息 </li>
+<li>-w3 生成错误、告警和其它提示信息（这是默认设置） </li>
+<li>-w4 生成所有信息</li>
+</ul>
+<ol start="3">
+<li><p>PC-Lint/FelexLint 还提供了用于处理函数库的头文件的告警级别设置选项 </p>
+<p>-wlib(Level)，这个选项不会影响处理 C/C++源代码模块的告警级别。<br>它有和 -wLevel 相同的告警级别，缺省告警级别为 3 级：</p>
+<ul>
+<li>-wlib(0) 不生成任何库信息 </li>
+<li>-wlib(1) 只生成错误信息（当处理库的源代码时） </li>
+<li>-wlib(2) 生成错误和告警信息 </li>
+<li>-wlib(3) 生成错误、告警和其它信息（这是默认设置） </li>
+<li>-wlib(4) 产生所有信息</li>
+</ul>
+</li>
+<li><p>PC-Lint 的检查分很多种类，有:</p>
+<ul>
+<li>强类型检查</li>
+<li>变量值跟踪</li>
+<li>语义信息</li>
+<li>赋值顺序检查</li>
+<li>弱定义检查</li>
+<li>格式检查</li>
+<li>缩进检查</li>
+<li>const 变量检查</li>
+<li>volatile 变量检查等等。</li>
+</ul>
+<p>对每一种检查类型，PC-Lint 都有很多详细的选项，用以控制 PC-Lint 的检查效果。</p>
+<p>PC-Lint 的选项有 300 多种，这些选项可以放在注释中（以注释 的形式插入代码中）</p>
+<p>例如：</p>
+<p>​    <code>/*lint option1 option2 ... optional commentary */</code>选项可以有多行     </p>
+<p>​    <code>//lint option1 option2 ... optional commentary </code>选项仅为一行（适 用于 C++）</p>
+<p> 选项间要以空格分开，lint 命令一定要小写，并且紧跟在/<em>或//后面，不能有空格。</em></p>
+<p>如果选项由类似于操作符和操作数的部分组成，例如-esym(534, printf, scanf, operator new)，其中最后一个选项是 operator new，那么在 operator 和 new 中间只能有一个空格。</p>
+<p>PC-Lint 的选项还可以放在宏定义中，当宏被展 开时选项才生效。</p>
+<p>例如：</p>
+<p>​    <code>#define DIVZERO(x) /*lint -save -e54 */ ((x) /0) /*lint -restore */ </code> 允许除数为 0 而不告警</p>
+</li>
+</ol>
+<p>需要把发到邮箱的许可证eval-license.lic文件放到主程序pclp64路径</p>
+<p>运行config/pclp_config来自动生成内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ pip install regex pyyaml</span><br><span class="line">$ python3 pclp_config.py --compiler&#x3D;gcc --compiler-bin&#x3D;&#96;which gcc&#96; --config-output-lnt-file&#x3D;co-gcc.lnt --config-output-header-file&#x3D;co-gcc.h --generate-compiler-config</span><br><span class="line">$ python3 pclp_config.py --compiler&#x3D;clang --compiler-bin&#x3D;&#96;which clang-8&#96; --config-output-lnt-file&#x3D;co-clang.lnt --config-output-header-file&#x3D;co-clang.h --generate-compiler-config</span><br><span class="line"></span><br><span class="line">#生成</span><br><span class="line">-rw-rw-r-- 1 u16s u16s  17K Sep 15 17:58 co-gcc.h</span><br><span class="line">-rw-rw-r-- 1 u16s u16s 2.0K Sep 15 17:58 co-gcc.lnt</span><br></pre></td></tr></table></figure>
+
+<p>适当添加 <code>--compiler-options=&quot;--std=c++11&quot;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pclp co.lnt source-files</span><br><span class="line">$ pclp co.lnt -w1 +e900 source-files</span><br></pre></td></tr></table></figure>
+
+<p>windows visual studio</p>
+<p>管理员启动 config\pclpvscfg.exe</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\gencfg.bat</span><br></pre></td></tr></table></figure>
+
+
+
+<p>大型项目：</p>
+<p>On Linux or macOS this can be done with:</p>
+<p><strong>export IMPOSTER_LOG=<proj>.commands</proj></strong> </p>
+<p>and on Windows:</p>
+<p><strong>set IMPOSTER_LOG=<proj>.commands</proj></strong> </p>
+<p>编译 imposter</p>
+<p>clang-8 config/imposter.c -o imposter</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ make -e CC&#x3D;&#x2F;path&#x2F;to&#x2F;imposter </span><br><span class="line"># 生成了 &lt;proj&gt;.commands</span><br><span class="line">$ python3 pclp_config.py\</span><br><span class="line">--compiler&#x3D;gcc\</span><br><span class="line">--imposter-file&#x3D;&lt;proj&gt;.commands\</span><br><span class="line">--config-output-lnt-file&#x3D;project.lnt\</span><br><span class="line">--generate-project-config\</span><br><span class="line">#生成了hello.lnt</span><br><span class="line"></span><br><span class="line">$ pclp64_linux co-gcc.lnt project.lnt 1&gt;output.txt</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>#capstone项目太大， 内存不足炸了</p>
+<p>![image-20200915190426990](/Users/notify/Library/Application Support/typora-user-images/image-20200915190426990.png)结果如下，不是很直观</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200915190052759.png" alt="image-20200915190052759"></p>
+<h1 id="Coverity"><a href="#Coverity" class="headerlink" title="Coverity"></a>Coverity</h1><h2 id="Coverity概述"><a href="#Coverity概述" class="headerlink" title="Coverity概述"></a>Coverity概述</h2><p>COVERITY是被Gartner、Forrester、 IDC和 VDC权威机构评定为最领先的应用安全测试解决方案(超大规模分布式静态代码检查工具)。世界上几乎所有超大型软件企业都在使用(包括谷歌,亚马逊,洛克希德马丁,空中客车,华为等)。</p>
+<p>Coverity公司是由一流的斯坦福大学的科学家于2002年成立的，产品核心技术是1998年至2002年在斯坦福大学计算机系统实验室开发的，用于解决一个计算机科学领域最困难的问题，在2003年发布了第一个能够帮助Linux、FreeBSD等开源项目检测大量关键缺陷的系统。Coverity公司推出的综合开发测试平台，基于新一代的不做代码规则检查、只专注检测代码中的Bug静态分析技术，可以更好地帮助开发人员在写代码的时候就能发现并修复安全缺陷，缩短产品上市时间和降低风险。Coverity是唯一位列IDC前10名软件质量工具供应商的静态分析工具厂商，被VDC评为静态源代码分析领域的领导者。</p>
+<h3 id="Coverity支持的语言和"><a href="#Coverity支持的语言和" class="headerlink" title="Coverity支持的语言和"></a>Coverity支持的语言和</h3><p>C/C++ C# Java JavaScript PHP Python ASP.NET Objective-C JSP Node.js Ruby  </p>
+<h3 id="支持检测的主要缺陷类型列表："><a href="#支持检测的主要缺陷类型列表：" class="headerlink" title="支持检测的主要缺陷类型列表："></a>支持检测的主要缺陷类型列表：</h3><ul>
+<li>API usage errors</li>
+<li>Best practice coding errors</li>
+<li>Build system issues</li>
+<li>Buffer overflows</li>
+<li>Class hierarchy inconsistencies</li>
+<li>Code maintainability issues</li>
+<li>Concurrent data access violations</li>
+<li>Control flow issues</li>
+<li>Cross-site scripting (XSS)</li>
+<li>Cross-site request forgery (CSRF)</li>
+<li>Deadlocks</li>
+<li>Error handling issues</li>
+<li>Hard-coded credentials</li>
+<li>Incorrect expression</li>
+<li>Insecure data handling</li>
+<li>Integer handling issues</li>
+<li>Integer overflows</li>
+<li>Memory – corruptions</li>
+<li>Memory – illegal accesses</li>
+<li>Null pointer dereferences</li>
+<li>Path manipulation</li>
+<li>Performance inefficiencies</li>
+<li>Program hangs</li>
+<li>Race conditions</li>
+<li>Resource leaks</li>
+<li>Rule violations</li>
+<li>Security best practices violations</li>
+<li>Security misconfigurations</li>
+<li>SQL Injection</li>
+<li>Uninitialized members</li>
+</ul>
+<p>使用<a target="_blank" rel="noopener" href="https://scan.coverity.com对仓库代码进行coverity静态检查,如果检测到coverity/">https://scan.coverity.com对仓库代码进行coverity静态检查，如果检测到coverity</a> issues会通过邮件通知相关patcher作者或者maintainer进行修改，但是邮件中无法看到issues的详细细节。需要登陆<a target="_blank" rel="noopener" href="https://scan.coverity.com网站去查看详细细节,另外我们需要有方法在向社区提交修复patch之前检查修改后的代码是否能通过coverity检测.本文简述查看issue及对修复代码进行检测的方法./">https://scan.coverity.com网站去查看详细细节，另外我们需要有方法在向社区提交修复patch之前检查修改后的代码是否能通过coverity检测。本文简述查看issue及对修复代码进行检测的方法。</a></p>
+<p>有小伙伴说，用公司内部的coverity检查不就行了？不好意思，coverity是商业软件，公司内部使用的版本的和社区使用的版本大概率不同，另外2边检查范围和告警屏蔽配置的不同，导致最终检查出来的结果很可能有差异。</p>
+<p><a target="_blank" rel="noopener" href="https://scan.coverity.com/download?tab=cxx">download</a></p>
+<h2 id="Usage-4"><a href="#Usage-4" class="headerlink" title="Usage"></a>Usage</h2><h3 id><a href="#" class="headerlink" title></a></h3><h3 id="注册"><a href="#注册" class="headerlink" title="注册"></a>注册</h3><p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171309584.png" alt="image-20200910171309584"></p>
+<h3 id="关联Github账户"><a href="#关联Github账户" class="headerlink" title="关联Github账户"></a>关联Github账户</h3><p>在My Account -&gt; Github中 关联自己的Github账户，</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171600312.png" alt="image-20200910171600312"></p>
+<p>去github检查相关项目访问权限<img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910172815718.png" alt="image-20200910172815718"></p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171901007.png" alt="image-20200910171901007"></p>
+<h2 id="添加项目"><a href="#添加项目" class="headerlink" title="添加项目"></a>添加项目</h2><p>来到DashBoard-&gt;Add Projects</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910171942696.png" alt="image-20200910171942696"></p>
+<p>开始创建目标分析项目（误将闭源源码泄漏与我无关）</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910172341892.png" alt="image-20200910172341892"></p>
+<h3 id="填好项目摘要信息"><a href="#填好项目摘要信息" class="headerlink" title="填好项目摘要信息"></a>填好项目摘要信息</h3><p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910174644153.png" alt="image-20200910174644153"></p>
+<p>注意选择缺陷报告访问权限，分别为</p>
+<p>1: 公开项目摘要信息和缺陷（只读）</p>
+<p>2: 只公开项目摘要信息</p>
+<p>3: 需要维护人员授权才可访问项目摘要和缺陷</p>
+<h2 id="构建项目"><a href="#构建项目" class="headerlink" title="构建项目"></a>构建项目</h2><p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910173408953.png" alt="image-20200910173408953"></p>
+<p>先使用coverity二进制工具构建好项目并打包再上传即可开始分析</p>
+<p>最下侧下载对应系统平台的二进制工具包</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200910195410865.png" alt="image-20200910195410865"></p>
+<ol>
+<li>下载</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget https:&#x2F;&#x2F;scan.coverity.com&#x2F;download&#x2F;linux64 --post-data &quot;token&#x3D;&lt;token&gt;&amp;project&#x3D;&lt;ProjName&gt;&quot; -O coverity_tool.tgz</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>解压</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tar -zxvf cov-analysis-linux64-2019.03.tar.gz</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="3">
+<li>初始化编译器</li>
+</ol>
+<p>查看所有编译器配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-configure --list-configured-compilers json</span><br></pre></td></tr></table></figure>
+
+
+
+<p>gcc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-configure --comptype gcc --compiler &#96;which gcc&#96;</span><br></pre></td></tr></table></figure>
+
+<p>clang</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rm -rf CMakeCache.txt CMakeFiles</span><br><span class="line">$ cov-configure --comptype clangcxx --compiler &#96;which clang++&#96;</span><br><span class="line">$ export CC&#x3D;&#96;which clang&#96; &amp;&amp; export CXX&#x3D;&#96;which clang++&#96;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="4">
+<li>开始编译项目</li>
+</ol>
+<p>cd到项目</p>
+<p>采用cmake的项目构建框架</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ export CC&#x3D;&#96;which clang++&#96; 可选</span><br><span class="line">$ export CXX&#x3D;&#96;which clang++&#96; 可选</span><br><span class="line">$ cmake ..</span><br><span class="line"># 对代码进行coverity清除和重编：</span><br><span class="line">$ cov-build --dir cov-int bash -c &#39;make clean &amp;&amp; make -j 8&#39; </span><br></pre></td></tr></table></figure>
+
+
+
+<p>采用automake的项目构建框架</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ export CXXFLAGS&#x3D;&quot;-O2 -fno-omit-frame-pointer -g&quot;</span><br><span class="line">$ CXX&#x3D;&quot;clang++ $CXXFLAGS&quot; CC&#x3D;&quot;clang $CXXFLAGS&quot; CCLD&#x3D;&quot;clang++ $CXXFLAGS&quot; .&#x2F;configure</span><br><span class="line"># 对代码进行coverity清除和重编：</span><br><span class="line">$ cov-build --dir cov-int bash -c &#39;make clean &amp;&amp; make -j 8&#39;</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.&#x2F;configure</span><br><span class="line"># 对代码进行coverity清除和重编：</span><br><span class="line">$ CXX&#x3D;&#x2F;opt&#x2F;local&#x2F;bin&#x2F;clang++ COVERITY_UNSUPPORTED&#x3D;1 CXXFLAGS&#x3D;&quot;-DNDEBUG -g3 -O2 -std&#x3D;c++11&quot; cov-build --dir cov-int bash -c &#39;make clean &amp;&amp; make -j 8&#39;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>企业完整版才能有的如下功能</p>
+<p>获取权限：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-analyze --dir coverity --all --wait-for-license</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-analyze --dir coverity @@rule.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<p>生成检测报告：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-format-errors --dir coverity --html-output coverity_html</span><br></pre></td></tr></table></figure>
+
+
+
+<p>检测报告web前端展示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cov-commit-defects --dir cov --host 127.0.0.1 --user x x x x x x x x --password xxxxx projname --stream STRAM-NAME</span><br></pre></td></tr></table></figure>
+
+
+
+<p>打包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar czvf coverity.tgz cov-int</span><br></pre></td></tr></table></figure>
+
+
+
+<p>开始上传</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">curl --form token&#x3D;&lt;token&gt; \</span><br><span class="line">  --form email&#x3D;&lt;email&gt; \</span><br><span class="line">  --form file&#x3D;@&#96;pwd&#96;&#x2F;coverity.tgz \</span><br><span class="line">  --form version&#x3D;&quot;&lt;Version&gt;&quot; \</span><br><span class="line">  --form description&#x3D;&quot;&lt;Description&gt;&quot; \</span><br><span class="line">  https:&#x2F;&#x2F;scan.coverity.com&#x2F;builds\?project\&#x3D;&lt;ProjName&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="排除-添加扫描组件"><a href="#排除-添加扫描组件" class="headerlink" title="排除/添加扫描组件"></a>排除/添加扫描组件</h2><p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911150915054.png" alt="image-20200911150915054"></p>
+<h2 id="创建模型文件"><a href="#创建模型文件" class="headerlink" title="创建模型文件"></a>创建模型文件</h2><p><a target="_blank" rel="noopener" href="https://scan.coverity.com/tune">https://scan.coverity.com/tune</a></p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911113248265.png" alt="image-20200911113248265"></p>
+<h2 id="查看缺陷"><a href="#查看缺陷" class="headerlink" title="查看缺陷"></a>查看缺陷</h2><p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911165935460.png" alt="image-20200911165935460"></p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/image-20200911171202562.png" alt="image-20200911171202562"></p>
+<p>1、空指针引用（Null pointer dereferences）<br>描述：程序调用值为null的指针的任何方法，会引发空指针异<br>可能的后果：程序Crash，exit, restart,执行未授权代码或命令<br>Checker：FORWARD_NULL</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/85e6c9d6-2c9d-3f89-8989-0e41acfa02df.png" alt="img"></p>
+<p> Checker: NULL_RETURNS</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/2171904d-6461-3a11-9ef9-e244db0bb9d3.png" alt="img"></p>
+<p>2、资源泄漏（Resource leaks）<br>描述：程序未释放资源，或程序错误地释放了资源<br>可能的后果：Dos攻击，敏感数据泄漏，资源消耗<br>Checker: RESOURCE_LEAK</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/618d2e61-d258-311a-8f36-2a65e335deb8.png" alt="img"></p>
+<p>3、内存破坏（Memory - corruptions）<br>描述：</p>
+<ul>
+<li>读写预期边界以外的内存缓冲区</li>
+<li>使用未初始化的变量</li>
+<li>函数/功能调用过程中使用了错误的参数取值</li>
+<li>重复使用释放后的内存</li>
+</ul>
+<p> 可能的后果：程序Crash，exit, restart,执行未授权代码或命令</p>
+<p>Checker: OVERRUN</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/bbb43acb-8440-36c1-af52-58809ae50842.png" alt="img"></p>
+<p>4、内存非法访问（Memory - illegal accesses）<br>描述：</p>
+<ul>
+<li><p>使用未初始化的变量</p>
+</li>
+<li><p>使用释放后的资源(CPU、内存、Socket、文件等) </p>
+</li>
+<li><p>函数返回堆栈变量的地址 </p>
+</li>
+</ul>
+<p>可能的后果：程序Crash，exit, restart,资源消耗等</p>
+<p>Checker: OVERRUN</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/5df84a06-5efd-3ab6-a3db-3573e05e1372.png" alt="img"></p>
+<p> Checker:  USE_AFTER_FREE</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/2525de25-af24-341a-94cc-3e5e84abba9f.png" alt="img"></p>
+<p>Checker:  RETURN_LOCAL</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/605a436e-b2a2-3b3e-8862-d783b4f8f5f5.png" alt="img"></p>
+<p>5、错误的表达式（Incorrect expression）<br>描述：使用错误的变量，不正确的类型转换<br>可能的后果：不符合预期的输出值，程序逻辑错误，运行时错误</p>
+<p>Checker: COPY_PASTE_ERROR</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/79275885-4b61-37cd-8889-f2a2f48cf8bb.png" alt="img"></p>
+<p>6、未初始化变量（Uninitialized variables）<br>描述：变量使用前未初始化<br>可能的后果：程序逻辑不正确，产生错误的数据，程序Crash</p>
+<p>Checker: UNINIT</p>
+<p><img src="/2021/03/01/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7/1be52be6-4364-3f48-9124-3fb81a4ad613.png" alt="img"></p>
+<h1 id="Fortify"><a href="#Fortify" class="headerlink" title="Fortify"></a>Fortify</h1><p>HP Fortify Source Code Analysis-Premium</p>
+<p>Fortify更聚焦于产品代码的安全方面，被hp收购；</p>
+<p><a target="_blank" rel="noopener" href="http://www8.hp.com/us/en/software-solutions/static-code-analysis-sast/">http://www8.hp.com/us/en/software-solutions/static-code-analysis-sast/</a></p>
+<h1 id="审计工具对比"><a href="#审计工具对比" class="headerlink" title="审计工具对比"></a>审计工具对比</h1><p>检出数量： pclint &gt;&gt; cppcheck &gt; TSC &gt; coverity &gt;  scan-build</p>
+<p>准确率： scan-build &gt; coverity ≈ TSC  &gt;&gt; cppcheck &gt; pclint</p>
+<p>综合评分：coverity &gt; scan-build  &gt;  TSC  &gt; cppcheck &gt; pclint</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/source-code-review/" rel="tag"># source code-review</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/03/01/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/03/01/test/" rel="prev" title="test">
+                test <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/notify-bibi" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:qq2496424084@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://driverxdw.github.io/" title="driverxdwのblog" target="_blank">driverxdwのblog</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B"><span class="nav-number">1.</span> <span class="nav-text">开始</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#llvm-amp-clang"><span class="nav-number">2.</span> <span class="nav-text">llvm &amp; clang</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TscanCode"><span class="nav-number">3.</span> <span class="nav-text">TscanCode</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Description"><span class="nav-number">3.1.</span> <span class="nav-text">Description:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Download-%EF%BC%9A"><span class="nav-number">3.2.</span> <span class="nav-text">Download ：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E9%9B%86"><span class="nav-number">3.3.</span> <span class="nav-text">测试集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage"><span class="nav-number">3.4.</span> <span class="nav-text">Usage:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#scan-build"><span class="nav-number">4.</span> <span class="nav-text">scan-build *****</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#description"><span class="nav-number">4.1.</span> <span class="nav-text">description</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#insall"><span class="nav-number">4.2.</span> <span class="nav-text">insall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage-1"><span class="nav-number">4.3.</span> <span class="nav-text">Usage</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Cppcheck"><span class="nav-number">5.</span> <span class="nav-text">Cppcheck***</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Description-1"><span class="nav-number">5.1.</span> <span class="nav-text">Description</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Build"><span class="nav-number">5.2.</span> <span class="nav-text">Build</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage-2"><span class="nav-number">5.3.</span> <span class="nav-text">Usage</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PC-lint"><span class="nav-number">6.</span> <span class="nav-text">PC-lint</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Description-2"><span class="nav-number">6.1.</span> <span class="nav-text">Description</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage-3"><span class="nav-number">6.2.</span> <span class="nav-text">Usage</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Coverity"><span class="nav-number">7.</span> <span class="nav-text">Coverity</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Coverity%E6%A6%82%E8%BF%B0"><span class="nav-number">7.1.</span> <span class="nav-text">Coverity概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Coverity%E6%94%AF%E6%8C%81%E7%9A%84%E8%AF%AD%E8%A8%80%E5%92%8C"><span class="nav-number">7.1.1.</span> <span class="nav-text">Coverity支持的语言和</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E6%A3%80%E6%B5%8B%E7%9A%84%E4%B8%BB%E8%A6%81%E7%BC%BA%E9%99%B7%E7%B1%BB%E5%9E%8B%E5%88%97%E8%A1%A8%EF%BC%9A"><span class="nav-number">7.1.2.</span> <span class="nav-text">支持检测的主要缺陷类型列表：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage-4"><span class="nav-number">7.2.</span> <span class="nav-text">Usage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-number">7.2.1.</span> <span class="nav-text"></span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C"><span class="nav-number">7.2.2.</span> <span class="nav-text">注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E8%81%94Github%E8%B4%A6%E6%88%B7"><span class="nav-number">7.2.3.</span> <span class="nav-text">关联Github账户</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E9%A1%B9%E7%9B%AE"><span class="nav-number">7.3.</span> <span class="nav-text">添加项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A1%AB%E5%A5%BD%E9%A1%B9%E7%9B%AE%E6%91%98%E8%A6%81%E4%BF%A1%E6%81%AF"><span class="nav-number">7.3.1.</span> <span class="nav-text">填好项目摘要信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-number">7.4.</span> <span class="nav-text">构建项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E9%99%A4-%E6%B7%BB%E5%8A%A0%E6%89%AB%E6%8F%8F%E7%BB%84%E4%BB%B6"><span class="nav-number">7.5.</span> <span class="nav-text">排除&#x2F;添加扫描组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%A8%A1%E5%9E%8B%E6%96%87%E4%BB%B6"><span class="nav-number">7.6.</span> <span class="nav-text">创建模型文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E7%BC%BA%E9%99%B7"><span class="nav-number">7.7.</span> <span class="nav-text">查看缺陷</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Fortify"><span class="nav-number">8.</span> <span class="nav-text">Fortify</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%A1%E8%AE%A1%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94"><span class="nav-number">9.</span> <span class="nav-text">审计工具对比</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">notify</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

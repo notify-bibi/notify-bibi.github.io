@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zn">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="FUZZ," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="libfuzzerllvm、clang-3.5 是不行的，fuzz编译选项无法使用多参考下 google libfuzzer  学会写测试代码，其中还有大量的测试字典  fuzzers&#x2F;dict libfuzzer build: libfuzzer  灵活：通过实现接口的方式使用，可以对任意函数进行fuzzing  高效：在同一进程中进行fuzzing，无需大量fork()进程  便捷：提供了AP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libfuzz">
+<meta property="og:url" content="http://notify-bibi.github.io/2020/04/11/libfuzz/index.html">
+<meta property="og:site_name" content="notifyのblog">
+<meta property="og:description" content="libfuzzerllvm、clang-3.5 是不行的，fuzz编译选项无法使用多参考下 google libfuzzer  学会写测试代码，其中还有大量的测试字典  fuzzers&#x2F;dict libfuzzer build: libfuzzer  灵活：通过实现接口的方式使用，可以对任意函数进行fuzzing  高效：在同一进程中进行fuzzing，无需大量fork()进程  便捷：提供了AP">
+<meta property="og:locale">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/11/libfuzz/libfuzz.assets/image-20200414104423405.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/11/libfuzz/libfuzz.assets/20200415053418.png">
+<meta property="og:image" content="http://notify-bibi.github.io/2020/04/11/libfuzz/libfuzz.assets/image-20200415085429720.png">
+<meta property="article:published_time" content="2020-04-11T04:36:21.000Z">
+<meta property="article:modified_time" content="2020-09-16T06:34:35.775Z">
+<meta property="article:author" content="notify">
+<meta property="article:tag" content="FUZZ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://notify-bibi.github.io/2020/04/11/libfuzz/libfuzz.assets/image-20200414104423405.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notify-bibi.github.io/2020/04/11/libfuzz/"/>
+
+
+
+
+
+  <title>libfuzz | notifyのblog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zn">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">notifyのblog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notify-bibi.github.io/2020/04/11/libfuzz/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="notifyのblog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">libfuzz</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-04-11T12:36:21+08:00">
+                2020-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="libfuzzer"><a href="#libfuzzer" class="headerlink" title="libfuzzer"></a>libfuzzer</h2><p>llvm、clang-3.5 是不行的，fuzz编译选项无法使用<br>多参考下 <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/chromium/src/+/master/testing/libfuzzer/">google libfuzzer</a>  学会写测试代码，其中还有大量的测试字典  <code>fuzzers/dict</code></p>
+<h3 id="libfuzzer-build"><a href="#libfuzzer-build" class="headerlink" title="libfuzzer build:"></a>libfuzzer build:</h3><hr>
+<p><a target="_blank" rel="noopener" href="https://github.com/Dor1s/libfuzzer-workshop">libfuzzer</a></p>
+<ul>
+<li><p>灵活：通过实现接口的方式使用，可以对任意函数进行fuzzing</p>
+</li>
+<li><p>高效：在同一进程中进行fuzzing，无需大量fork()进程</p>
+</li>
+<li><p>便捷：提供了API接口，便于定制化和集成</p>
+<p>但是没有dirty mode，需要编译时插桩</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">apt-get install -y make autoconf automake libtool pkg-config zlib1g-dev</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/Dor1s/libfuzzer-workshop.git ~/libfuzzer</span><br><span class="line"><span class="built_in">cd</span> ~/libfuzzer/libFuzzer/ &amp;&amp; ./Fuzzer/build.sh</span><br><span class="line">当前目录生成一个 libFuzzer.a</span><br></pre></td></tr></table></figure>
+
+<h3 id="usage"><a href="#usage" class="headerlink" title="usage"></a>usage</h3><hr>
+<p><code>libFuzzer.a</code>需要被静态链接到测试程序，并且会调用入口函数</p>
+<p><code>fuzzer</code>会跟踪哪些代码区域已经测试过，然后在输入数据的语料库上进行<strong>变异</strong>，来使代码覆盖率最大化。代码覆盖率的信息由 <code>LLVM</code> 的<code>SanitizerCoverage</code> 插桩提供。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *Data, <span class="keyword">size_t</span> Size)</span></span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">编译一个cpp</span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(lib,<span class="meta-string">&quot;libFuzzer.a&quot;</span>)</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">int</span> <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data, <span class="keyword">size_t</span> size)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">bool</span> result = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">if</span> (size &gt;= <span class="number">3</span>) &#123;</span><br><span class="line">    result = data[<span class="number">0</span>] == <span class="string">&#x27;g&#x27;</span> &amp;&amp; data[<span class="number">1</span>] == <span class="string">&#x27;o&#x27;</span> &amp;&amp; data[<span class="number">2</span>] == <span class="string">&#x27;o&#x27;</span> &amp;&amp; data[<span class="number">3</span>] == <span class="string">&#x27;d&#x27;</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 代码覆盖率测试工具 -fprofile-arcs -ftest-coverage   用 afl-cov 才需要加，可不加</span></span><br><span class="line"><span class="comment">// -fsanitize-coverage=trace-pc-guard 提供代码覆盖率信息  生成 .sancov 文件才需要加</span></span><br><span class="line">clang++ -g -<span class="built_in">std</span>=c++<span class="number">11</span> -fsanitize=fuzzer,address -fprofile-arcs -ftest-coverage -fsanitize-coverage=trace-pc-guard demo.cxx ~/libfuzzer/libFuzzer/libFuzzer.a -o demo</span><br></pre></td></tr></table></figure>
+
+<img src="/2020/04/11/libfuzz/libfuzz.assets\image-20200414104423405.png" alt="code" style="zoom: 90%;">
+
+<p>效率感觉低了很多黄色框是检测是否错误读写，0x7fff8000是一个偏移，而不是数组。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//block_num是所有的block数量</span></span><br><span class="line"><span class="keyword">uint64_t</span> llvm_gcov_ctr[block_num];</span><br><span class="line"><span class="comment">//guard_block_num是特殊路径的block数量，也等于所有if数量+1，比如上面的 result = data[0] == &#x27;g&#x27; &amp;&amp; data[1] == &#x27;o&#x27; &amp;&amp; data[2] == &#x27;o&#x27; &amp;&amp; data[3] == &#x27;d&#x27;; 有4个if， 那么就有6个</span></span><br><span class="line"><span class="keyword">char</span> __stop___sancov_guards[guard_block_num];</span><br><span class="line"><span class="keyword">char</span> __start___sancov_cntrs[guard_block_num];</span><br><span class="line"></span><br><span class="line"><span class="comment">//伪代码</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data, <span class="keyword">size_t</span> size)</span></span>&#123;</span><br><span class="line">    <span class="comment">//到达block_n的条件分支就将cmp操作数记录下来</span></span><br><span class="line">    _sanitizer_cov_trace_const_cmp4(opa, opb) <span class="comment">// -fsanitize=fuzzer</span></span><br><span class="line">    <span class="keyword">if</span>(block_n_guard_true)&#123;</span><br><span class="line">        ++_llvm_gcov_ctr[block_n];<span class="comment">//-fprofile-arcs</span></span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line"><span class="meta">#defined(FLAG(-fsanitize-coverage=trace-pc-guard))</span></span><br><span class="line">        _sanitizer_cov_trace_pc_guard(_start___sancov_guards[block_n])</span><br><span class="line">        ++__stop___sancov_guards[block_n];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> defined(FLAG(-fsanitize=fuzzer))</span></span><br><span class="line">        ++__start___sancov_cntrs[block_n];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">        ++_llvm_gcov_ctr[block_n]; <span class="comment">//-fprofile-arcs</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data, <span class="keyword">size_t</span> size)</span></span>;</span><br><span class="line">ASAN：</span><br><span class="line"><span class="comment">//data是需要对齐的，8字节对齐. 下面的右移3，所以就是对齐8，如果右移6就是对齐64</span></span><br><span class="line"><span class="comment">//当传入 size = 4 时，那么</span></span><br><span class="line"><span class="comment">//0x7FFF8000+(data&gt;&gt;3)有如下内存值 </span></span><br><span class="line"><span class="comment">//    （Shadow bytes mask） 04 FA FA FA FA FA FA FA FA FA</span></span><br><span class="line"><span class="comment">//04就是只能访问4字节，必定==size，</span></span><br><span class="line">检测原理：</span><br><span class="line"><span class="comment">//读取1字节，当访问data[4]时，</span></span><br><span class="line"><span class="comment">//编译器加代码判断</span></span><br><span class="line"><span class="keyword">register</span> <span class="keyword">size_t</span> data_ptr = (<span class="keyword">size_t</span>)(data + <span class="number">4</span>);</span><br><span class="line"><span class="keyword">if</span>(byte(<span class="number">0x7FFF8000</span>+(data_ptr&gt;&gt;<span class="number">3</span>)) &amp;&amp;  (data_ptr&amp;<span class="number">7</span>) &gt;= byte(<span class="number">0x7FFF8000</span>+(data_ptr&gt;&gt;<span class="number">3</span>)))&#123;</span><br><span class="line">    _asan_report_load1(data_ptr);<span class="comment">//error  buffer-overflow</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//读取2字节，当访问((uint16_t*)data)[2]时，那么就是如下代码：</span></span><br><span class="line"><span class="keyword">register</span> <span class="keyword">size_t</span> data_ptr = (<span class="keyword">size_t</span>)(data + <span class="number">4</span>);</span><br><span class="line"><span class="keyword">if</span>(byte(<span class="number">0x7FFF8000</span>+(data_ptr&gt;&gt;<span class="number">3</span>)) &amp;&amp;  (data_ptr&amp;<span class="number">7</span>) + <span class="number">1</span> &gt;= byte(<span class="number">0x7FFF8000</span>+(data_ptr&gt;&gt;<span class="number">3</span>)))&#123;</span><br><span class="line">    _asan_report_load2(data_ptr);<span class="comment">//error  buffer-overflow</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//这就是检测原理了-fsanitize=address</span></span><br><span class="line"><span class="comment">//所以crash不一定是真的crash，可能是越界读取，这并不一定造成漏洞</span></span><br></pre></td></tr></table></figure>
+
+<p><code>libfuzzer</code>根据<code>_sanitizer_cov_trace_const_xxx</code>函数和<code> __start___sancov_cntrs</code>数组就可以很好的 构造出适合的测试数据来访问未探索的block</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (size &gt;= <span class="number">3</span>) &#123;</span><br><span class="line">    <span class="comment">//当size=3,访问了data[3]，就直接crash</span></span><br><span class="line">    result = data[<span class="number">0</span>] == <span class="string">&#x27;g&#x27;</span> &amp;&amp; data[<span class="number">1</span>] == <span class="string">&#x27;o&#x27;</span> &amp;&amp; data[<span class="number">2</span>] == <span class="string">&#x27;o&#x27;</span> &amp;&amp; data[<span class="number">3</span>] == <span class="string">&#x27;d&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$ ./demo out_directory</span><br><span class="line"><span class="comment">//看下结果</span></span><br><span class="line">    </span><br><span class="line">==<span class="number">20205</span>==ABORTING</span><br><span class="line">MS: <span class="number">1</span> EraseBytes-; base unit: <span class="number">87967</span>cad164ed1722d0cbd4778fbb298016acc07</span><br><span class="line"><span class="number">0x67</span>,<span class="number">0x6f</span>,<span class="number">0x6f</span>,</span><br><span class="line">goo</span><br><span class="line">artifact_prefix=&#x27;./&#x27;; Test unit written to ./crash-3f95edc0399d06d4b84e7811dd79272c69c8ed3a</span><br><span class="line">Base64: Z29v</span><br></pre></td></tr></table></figure>
+
+<p>那么简单的密码他能解决吗？便随手写了2个算法整个活</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(lib,<span class="meta-string">&quot;libFuzzer.a&quot;</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data, <span class="keyword">size_t</span> size)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> 0</span></span><br><span class="line"><span class="keyword">char</span> data[] = &#123; <span class="number">10</span>,<span class="number">13</span>,<span class="number">6</span>,<span class="number">28</span>,<span class="number">12</span>,<span class="number">4</span>,<span class="number">21</span>,<span class="number">57</span>,<span class="number">49</span>,<span class="number">12</span>,<span class="number">61</span>,<span class="number">49</span>,<span class="number">1</span>,<span class="number">27</span>,<span class="number">9</span>,<span class="number">125</span> &#125;;</span><br><span class="line"><span class="comment">//算法1</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">checkinput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* a, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (!c) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">uint8_t</span>* enc = (<span class="keyword">uint8_t</span>*)<span class="built_in">malloc</span>(c);</span><br><span class="line">    <span class="built_in">memcpy</span>(enc, a, c);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; c - <span class="number">1</span>; i++) &#123;</span><br><span class="line">        enc[i] = enc[i] ^ enc[i + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">if</span> (enc[i] != data[i]) &#123;</span><br><span class="line">            <span class="built_in">free</span>(enc);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>(enc);</span><br><span class="line">    <span class="keyword">return</span> c == <span class="keyword">sizeof</span>(data);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="comment">//算法2</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">checkinput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* a, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span>  w, i, j, k;</span><br><span class="line">    <span class="keyword">char</span> b[<span class="number">60</span>] = &#123; <span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">00</span>, <span class="number">20</span>, <span class="number">05</span>, <span class="number">20</span>, <span class="number">05</span> ,<span class="number">20</span>, <span class="number">05</span> ,<span class="number">05</span> ,</span><br><span class="line">        <span class="number">20</span> ,<span class="number">00</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">00</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,</span><br><span class="line">        <span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">00</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">20</span> ,<span class="number">05</span> ,<span class="number">05</span> ,<span class="number">05</span> ,<span class="number">00</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,</span><br><span class="line">        <span class="number">05</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> ,<span class="number">20</span> &#125;;</span><br><span class="line">    <span class="keyword">int</span> v18 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> v14 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;= c - <span class="number">1</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (i != (c - <span class="number">1</span>)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (a[i] == <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">                v18--;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (a[i] == <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">                v18++;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (a[i] == <span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">                v14--;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (a[i] == <span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">                v14++;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">if</span> (((v14 * <span class="number">9</span> + v18) &lt; <span class="number">60</span>) &amp;&amp; ((v14 * <span class="number">9</span> + v18) &gt; <span class="number">-20</span>)) </span><br><span class="line">                <span class="keyword">if</span> (v18 &gt;= <span class="number">0</span> &amp;&amp; v14 &gt;= <span class="number">0</span> &amp;&amp; b[v14 * <span class="number">9</span> + v18] != <span class="number">20</span>) </span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">else</span> </span><br><span class="line">                 <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> v18 == <span class="number">7</span> &amp;&amp; v14 == <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">size_t</span> ccount = <span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">LLVMFuzzerTestOneInput</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data, <span class="keyword">size_t</span> size)</span> </span>&#123;</span><br><span class="line">    ccount++;</span><br><span class="line">    <span class="keyword">if</span>(checkinput(data, size))&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Good boy. count:%zx\n&quot;</span>, ccount);</span><br><span class="line">        <span class="keyword">int</span> t=data[<span class="number">-1</span>];<span class="comment">// 产生leak错误 作为crash</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir crackme_out <span class="comment"># fuzzer 程序可以有多个目录作为参数，此时 fuzzer 会递归遍历所有目录，把目录中的文件读入最为样本数据传给测试函数，同时会把那些可以产生新的的代码路径的样本保存到第一个目录里面。</span></span><br><span class="line">./crackme -use_cmp=1 -dump_coverage=1 -print_final_stats=1 -max_len=15 ./crackme_out <span class="comment">#不加-max_len费时几十倍</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2020/04/11/libfuzz/libfuzz.assets\20200415053418.png" alt="out">
+
+<p><strong>其他项目的编译方法</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#使用-fsanitize-coverage = trace-cmp，编译器将在比较指令和switch语句周围插入额外的工具。</span></span><br><span class="line"><span class="comment">#使用-fsanitize-coverage = trace-div，编译器将检测整数除法指令（以捕获除法的正确参数）</span></span><br><span class="line"><span class="comment">#并使用 -fsanitize-coverage = trace-gep – LLVM GEP指令 （以捕获数组索引）。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#-fsanitize-coverage=[func,bb,edge]  bb:basic block</span></span><br><span class="line"><span class="comment">#With -fsanitize-coverage=trace-bb the compiler will insert __sanitizer_cov_trace_basic_block(s32 *id) before every function, basic block, or edge (depending on the value of -fsanitize-coverage=[func,bb,edge]).</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> FUZZ_CXXFLAGS=<span class="string">&quot;-O2 -fno-omit-frame-pointer -g -fsanitize=address \</span></span><br><span class="line"><span class="string">    -fsanitize-coverage=edge,indirect-calls,trace-cmp,trace-div,trace-gep,trace-pc-guard&quot;</span></span><br><span class="line">  </span><br><span class="line">CXX=<span class="string">&quot;clang++ <span class="variable">$FUZZ_CXXFLAGS</span>&quot;</span> CC=<span class="string">&quot;clang <span class="variable">$FUZZ_CXXFLAGS</span>&quot;</span> \</span><br><span class="line">    CCLD=<span class="string">&quot;clang++ <span class="variable">$FUZZ_CXXFLAGS</span>&quot;</span>  ./configure</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="coverage-report"><a href="#coverage-report" class="headerlink" title="coverage report"></a>coverage report</h3><p>覆盖率就是整个fuzzer一趟测试触及的 basic-block 总个数。</p>
+<p>文件<code>./crackme.26107.sancov</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 转换成 .symcov</span></span><br><span class="line">sancov-8 -symbolize ./crackme crackme.26107.sancov &gt; crackme.26107.symcov</span><br></pre></td></tr></table></figure>
+
+<p>然后使用 <a target="_blank" rel="noopener" href="http://llvm.org/svn/llvm-project/llvm/trunk/tools/sancov/coverage-report-server.py">coverage-report-server</a> 解析这个文件。这里也有<code>libfuzzer/lessons/08/coverage-report-server.py</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://llvm.org/svn/llvm-project/llvm/trunk/tools/sancov/coverage-report-server.py  -o ./coverage-report-server.py</span><br><span class="line">$ python3 ~/libfuzzer/lessons/08/coverage-report-server.py --symcov crackme.26107.symcov --srcpath ./</span><br><span class="line">Loading coverage...</span><br><span class="line">Serving at 127.0.0.1:8001</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2020/04/11/libfuzz/libfuzz.assets\image-20200415085429720.png" alt="cov">
+
+<hr>
+<p>算法1：事实证明它还是<strong>不能解密如算法1的简单算法</strong>，更不说解循环xor :</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">enc[i+1] &#x3D; enc[i] ^ enc[i + 1];</span><br><span class="line">enc[0] &#x3D; enc[0] ^ enc[c-1];</span><br></pre></td></tr></table></figure>
+
+<p>原因是，它依旧不能<strong>探查前后数据的关系</strong>，<strong>几乎不可能</strong>，仅仅对一些简单条件的路径能较好的探索，一般来说足够了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">./demo -<span class="built_in">help</span>=1 <span class="comment">#可以看到很多fuzz选项</span></span><br><span class="line">-use_cmp ：根据trace guard的条件追踪来引导突变</span><br><span class="line">-dump_coverage ：可视化覆盖率</span><br><span class="line">-max_len ：测试数据最大长度</span><br><span class="line">-max_total_time : 设置最长的运行时间， 单位是 秒， 这里是 300s , 也就是 5 分钟</span><br><span class="line">-print_final_stats：执行完 fuzz 后 打印统计信息</span><br><span class="line"><span class="comment">#....待补充</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>移步【参考2】实战两个简单的CVE</p>
+<h3 id="Dictionary"><a href="#Dictionary" class="headerlink" title="Dictionary"></a>Dictionary</h3><hr>
+<p>就是输入的关键字合集，比如 <strong>png图片</strong> 就有 <strong>png 图片头</strong>。strcmp(phead,”xxxx”) 会直接将整个xxxx关键字替换进去，提高速度。就好比选择联想输入的候选词一样。</p>
+<p><code>dictionary</code> 文件-&gt; <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/chromium/src/+/master/testing/libfuzzer/fuzzers/dicts">google git</a> or <a target="_blank" rel="noopener" href="https://github.com/google/AFL/tree/master/dictionaries">google afl</a></p>
+<p><code>Dictionary</code> 就是实现了这种思路。 <code>libfuzzer</code> 和 <code>afl</code> 使用的 <code>dictionary</code> 文件的语法是一样的， 所以可以直接拿 afl 里面的 <code>dictionary</code> 文件来给 <code>libfuzzer</code> 使用。</p>
+<p><a target="_blank" rel="noopener" href="https://llvm.org/docs/LibFuzzer.html#id30">libfuzzer 官网 </a></p>
+<p>dict文件有用的只是由 <code>&quot;&quot;</code> 包裹的<strong>字串</strong>，<code>libfuzzer</code> 会用它们进行组合来生成样本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./program -dict=./xxx.dict -max_total_time=300 -print_final_stats=1 input_dir</span><br></pre></td></tr></table></figure>
+
+<p>google AFL :</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-x dir        - optional fuzzer dictionary (see README)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="merge"><a href="#merge" class="headerlink" title="merge"></a>merge</h3><hr>
+<p>可以使用 <code>libfuzzer</code> 把样本集进行精简。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir output_min_dir</span><br><span class="line">./program -merge=1 output_min_dir input_dir</span><br></pre></td></tr></table></figure>
+
+<p><code>output_min_dir</code>: 精简后的样本集存放的位置<br><code>input_dir</code>: 原始样本集存放的位置</p>
+<h2 id="参考-amp-推荐："><a href="#参考-amp-推荐：" class="headerlink" title="参考&amp;推荐："></a>参考&amp;推荐：</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/183307">基于Unicorn和LibFuzzer的模拟执行fuzzing</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/71898.html">fuzz实战之libfuzzer</a></li>
+<li><a target="_blank" rel="noopener" href="https://lcamtuf.blogspot.com/2015/01/afl-fuzz-making-up-grammar-with.html">Dictionary</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Dor1s/libfuzzer-workshop">libfuzzer-workshop</a></li>
+<li><a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-249986.htm">fuzz总结</a></li>
+<li>[p1umer-2019/02/20/libfuzzer &amp; LLVM 初探](<a target="_blank" rel="noopener" href="https://p1umer.github.io/2019/02/20/libfuzzer">https://p1umer.github.io/2019/02/20/libfuzzer</a> &amp; LLVM 初探/)</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/FUZZ/" rel="tag"># FUZZ</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/04/10/afl-fuzz/" rel="next" title="fuzz ImageMagick">
+                <i class="fa fa-chevron-left"></i> fuzz ImageMagick
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/10/17/sdk-adb-qemu/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/notify-bibi" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:qq2496424084@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://driverxdw.github.io/" title="driverxdwのblog" target="_blank">driverxdwのblog</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#libfuzzer"><span class="nav-number">1.</span> <span class="nav-text">libfuzzer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#libfuzzer-build"><span class="nav-number">1.1.</span> <span class="nav-text">libfuzzer build:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#usage"><span class="nav-number">1.2.</span> <span class="nav-text">usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#coverage-report"><span class="nav-number">1.3.</span> <span class="nav-text">coverage report</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dictionary"><span class="nav-number">1.4.</span> <span class="nav-text">Dictionary</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#merge"><span class="nav-number">1.5.</span> <span class="nav-text">merge</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83-amp-%E6%8E%A8%E8%8D%90%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">参考&amp;推荐：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">notify</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
